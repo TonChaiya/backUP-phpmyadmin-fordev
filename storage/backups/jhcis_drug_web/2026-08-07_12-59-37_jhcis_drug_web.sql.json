@@ -1,0 +1,35 @@
+{
+    "database": "jhcis_drug_web",
+    "filename": "2026-08-07_12-59-37_jhcis_drug_web.sql",
+    "relative_path": "jhcis_drug_web/2026-08-07_12-59-37_jhcis_drug_web.sql",
+    "created_at": "2026-08-07T12:59:37+00:00",
+    "bytes": 36423,
+    "sha256": "71f00db95fe59bb83b5878706a046a399af0b6f5287666b058cdb4e8d95c9fe1",
+    "complete": true,
+    "stats": {
+        "tables": 1,
+        "views": 0,
+        "triggers": 0,
+        "procedures": 0,
+        "functions": 0,
+        "events": 0,
+        "foreign_keys": 0,
+        "auto_increment_tables": 0,
+        "myisam_lock_sections": 0,
+        "rows": 284
+    },
+    "restore_order": [
+        "session_setup",
+        "drop_views",
+        "tables_without_foreign_keys",
+        "data_in_foreign_key_dependency_order",
+        "auto_increment_values_after_data",
+        "foreign_keys_after_all_tables_exist",
+        "triggers",
+        "view_placeholders",
+        "views",
+        "routines",
+        "events",
+        "session_restore"
+    ]
+}
