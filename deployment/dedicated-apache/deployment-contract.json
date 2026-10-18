@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "service_name": "BackupPhpMyAdminApache",
+  "runtime_account": ".\\BackupPhpRuntime",
+  "listener": "127.0.0.1:8788",
+  "paths": {
+    "application_root": "C:\\Program Files\\BackupPhpMyAdmin\\Application",
+    "document_root": "C:\\Program Files\\BackupPhpMyAdmin\\Application\\public",
+    "apache_root": "C:\\Program Files\\BackupPhpMyAdmin\\Runtime\\Apache",
+    "php_root": "C:\\Program Files\\BackupPhpMyAdmin\\Runtime\\PHP",
+    "runtime_data_root": "C:\\ProgramData\\BackupPhpMyAdmin\\RuntimeData",
+    "secret_provider_root": "C:\\ProgramData\\BackupPhpMyAdmin\\SecretProvider"
+  },
+  "apache_modules": [
+    "authz_core_module",
+    "authz_host_module",
+    "dir_module",
+    "filter_module",
+    "headers_module",
+    "log_config_module",
+    "mime_module",
+    "reqtimeout_module"
+  ],
+  "php_extensions": [
+    "mysqli",
+    "sodium"
+  ],
+  "runtime_directories": [
+    "backups",
+    "jobs",
+    "logs",
+    "restore-jobs",
+    "restore-integration-jobs",
+    "restore-integration-ownership",
+    "database-operations",
+    "temporary",
+    "sessions"
+  ]
+}

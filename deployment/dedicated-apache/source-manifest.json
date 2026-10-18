@@ -1,0 +1,841 @@
+{
+    "schema": 1,
+    "package_version": "2026.10.18.1",
+    "build_id": "wt-b5246f66b9fd94a3",
+    "source_kind": "current_working_tree",
+    "artifact_count": 166,
+    "total_size": 457533,
+    "files": [
+        {
+            "path": "app/Backup/BackupArtifactPublisher.php",
+            "size": 6473,
+            "sha256": "5e48b81b7b46d00601844c14bd2e0d3f0e83c2dfea81e988594676770069d356"
+        },
+        {
+            "path": "app/Backup/BackupExecutionGuard.php",
+            "size": 2067,
+            "sha256": "65300d1bc75c98353caf4f00f1480e776392471338b5f0eb5539fec9252923d2"
+        },
+        {
+            "path": "app/Backup/BackupJobAccess.php",
+            "size": 6954,
+            "sha256": "d4d6ef557933a45fa0f463f5f75914cdb6a4b2978b9d5587c43757c1d81031cc"
+        },
+        {
+            "path": "app/Backup/BackupJobRequestException.php",
+            "size": 362,
+            "sha256": "1b56b6e6457040f09b82f339134b4a11e708fa3699b576cf54974748932d53ae"
+        },
+        {
+            "path": "app/Backup/BackupJobRunner.php",
+            "size": 9012,
+            "sha256": "72542a8308274794b244fd2f3439d86c827504f41f426b8a9dbf8b033e347bfa"
+        },
+        {
+            "path": "app/Backup/BackupJobStore.php",
+            "size": 8125,
+            "sha256": "df29b81e8b72ba36c24cce13462d307355e849377896b7a93db7046e9d7dca0c"
+        },
+        {
+            "path": "app/Backup/BackupOperation.php",
+            "size": 353,
+            "sha256": "00f70ed27c61eead6f00a9a6157c90fe3e317f53a10bfe90ff3bf7d1babc3e23"
+        },
+        {
+            "path": "app/Backup/BackupService.php",
+            "size": 32861,
+            "sha256": "3dfde278f1fd05f090716a2054aee956ecb2674c073fea0a9066f434d7de3328"
+        },
+        {
+            "path": "app/Backup/MysqliBackupOperation.php",
+            "size": 1722,
+            "sha256": "26ef234ca2209cfe57a8a24514c842e56062adf659877c1d4904057ac01d9392"
+        },
+        {
+            "path": "app/Database/ConnectionFactory.php",
+            "size": 743,
+            "sha256": "bef3070a3031965729be1a6943b0abbe47b8eec1ac0f5b81f90e698c7d73b59f"
+        },
+        {
+            "path": "app/Database/DatabaseOperationLock.php",
+            "size": 290,
+            "sha256": "a0f2df6b078270d190cd86436b4489ea92b7105b23b96027294d3fff39bf4637"
+        },
+        {
+            "path": "app/Database/DatabaseRepository.php",
+            "size": 702,
+            "sha256": "20bdc45269b240cc169d8e365bd753f60a132a2efb508085ed78f58d9659c5fb"
+        },
+        {
+            "path": "app/Database/FileDatabaseOperationLock.php",
+            "size": 1444,
+            "sha256": "a57fcded62784bf35f38657cd1c7ddb9f6e726b13c7791b6751b2a279d80f658"
+        },
+        {
+            "path": "app/Http/Controller/AuthController.php",
+            "size": 421,
+            "sha256": "79c717a015b4151243ca8f91602ec3df6778040b78026c94aec888e821860116"
+        },
+        {
+            "path": "app/Http/Controller/BackupController.php",
+            "size": 3450,
+            "sha256": "ffba6ba658372b0fa3c095a7447e2b7e066a02239907b6ed18631ce1c32691fd"
+        },
+        {
+            "path": "app/Http/Controller/SettingsController.php",
+            "size": 1662,
+            "sha256": "03d7e2379920d3472b873adf24269f9e4bd8c7b466a7572918e83d3e8554ab9e"
+        },
+        {
+            "path": "app/Http/Router.php",
+            "size": 789,
+            "sha256": "0e0f1255112fe624d02ecd751a220391e11aa30999b6b4980fa2252e4ce90ed0"
+        },
+        {
+            "path": "app/Restore/BackupProvenanceIndex.php",
+            "size": 2653,
+            "sha256": "bc2b6a5f0d1cc99f5f2f5eb93f00705942887711a376e3ac748dce253bf314b4"
+        },
+        {
+            "path": "app/Restore/DatabaseOperationLockContract.php",
+            "size": 418,
+            "sha256": "5f4b6966a20994538bdd48fdab20a9d2d83db7f22775032c172936badfe746a5"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/LiveRestoreAttestationGate.php",
+            "size": 2674,
+            "sha256": "87ac7337b2dc0428490ceefb4cafd46b04bfaed6ee279092f42cdcc5dc12f27c"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/MariaDbPrivilegeDialect.php",
+            "size": 157,
+            "sha256": "65f5603f5c7cae83314f58b008ff5055a32f9d5575f12db7d23f17ec043104ab"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/MySqlPrivilegeDialect.php",
+            "size": 1265,
+            "sha256": "6c493c8793925a140b94220285a7cd4895848eec34cc4f53a85296c0311a22b6"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/PrivilegeAttestationService.php",
+            "size": 1879,
+            "sha256": "a458023661dc64b3d0b535deb3f5aa4ec15a0a4af8883fdaf6b7ab75415e6dc2"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/PrivilegeAttestor.php",
+            "size": 4928,
+            "sha256": "acde90331ca1b0b62ab703ed1930f08826238a80d72b1f7d1433506d8a86e2a1"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/PrivilegeDialect.php",
+            "size": 251,
+            "sha256": "f00213d1a2b8b2448dae9078608f75bb2a273883e038fa8f1c3e359a4eed2e48"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/PrivilegeEvidence.php",
+            "size": 827,
+            "sha256": "dd9c7d4aea6e089856c2fc2a514fa68755d9620088ebafd3b9a37b926db96d11"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/ServerIdentity.php",
+            "size": 1303,
+            "sha256": "9d02a1767d021c8f19cf15098a66b87949324acb2c0af166e1136943325a762d"
+        },
+        {
+            "path": "app/Restore/Integration/Attestation/ServerIdentityProbe.php",
+            "size": 943,
+            "sha256": "eea2b72c62983ddff250e7853f37435f5fc58c4581b9cf51dee0b93c986b216b"
+        },
+        {
+            "path": "app/Restore/Integration/Authorization/ExecutionAuthorization.php",
+            "size": 541,
+            "sha256": "90380ad288ea330cb25f5dbf2e5417c9f44864d2f269b467f89e4ec055ffb95d"
+        },
+        {
+            "path": "app/Restore/Integration/Authorization/LiveAuthorizationReceipt.php",
+            "size": 2863,
+            "sha256": "359089e688aaad17d03e47fca8dc74394c12ed8e173765d73327212aa1f2658f"
+        },
+        {
+            "path": "app/Restore/Integration/Authorization/LiveAuthorizationReceiptStore.php",
+            "size": 3909,
+            "sha256": "e34a9016a30546c657781ddb3f6d1fbee5d0d0adb859ff12785c4fe06ccfc8c4"
+        },
+        {
+            "path": "app/Restore/Integration/Database/AuthorizedSourceCatalog.php",
+            "size": 794,
+            "sha256": "2552b10d9e53fe935167990097a5f6f4d4c8e9993186f660fe202c3ca0ef0c6b"
+        },
+        {
+            "path": "app/Restore/Integration/Database/IntegrationBackupOperation.php",
+            "size": 1056,
+            "sha256": "a71d224d9810a2b1def45af03650f2db20be115a407cddeec4032c7d6460f62e"
+        },
+        {
+            "path": "app/Restore/Integration/Database/MetadataConnection.php",
+            "size": 642,
+            "sha256": "dba5f2c0ebbbaf487863475a8516d2a101b01bb3dceaa02460c99a22d155c603"
+        },
+        {
+            "path": "app/Restore/Integration/Database/MysqliRestoreConnection.php",
+            "size": 11932,
+            "sha256": "800d1b6fcb4108a2ed47fcebdd2b71a9139f1aabdce05f283b2c6a4da9aa548a"
+        },
+        {
+            "path": "app/Restore/Integration/Database/OfflineRestoreConnection.php",
+            "size": 234,
+            "sha256": "f7f330b207da6abb5e2492c7f110b701566dc673dbbb35095b62f47a0ed558bc"
+        },
+        {
+            "path": "app/Restore/Integration/Database/RestoreConnection.php",
+            "size": 1233,
+            "sha256": "a68a09406d9c415759bd9cea6d48fdcbbeccb73089f6c93799c6caf52ce7f7ce"
+        },
+        {
+            "path": "app/Restore/Integration/Database/RestoreConnectionFactory.php",
+            "size": 1487,
+            "sha256": "0dae29573144d9bd5f63e5f7266e78308dc72dc7db0a6a67ae85448884ef9397"
+        },
+        {
+            "path": "app/Restore/Integration/Execution/CleanupCoordinator.php",
+            "size": 2265,
+            "sha256": "63fcba9c820bb33e807f503f3fea57991962008741b1728d13a0ab0bb01b2105"
+        },
+        {
+            "path": "app/Restore/Integration/Execution/ExecutionResult.php",
+            "size": 439,
+            "sha256": "49fad35b65f8e77a2ce81b30e1150e1034752beddad5610d9acf585cc4dd6bb8"
+        },
+        {
+            "path": "app/Restore/Integration/Execution/RestoreIntegrationRunner.php",
+            "size": 9378,
+            "sha256": "cfbaeaa0b230502f2b3c452eb602652ae78e0d111dccb07d4e969d2f2fcfd3f6"
+        },
+        {
+            "path": "app/Restore/Integration/Execution/TargetDatabaseProvisioner.php",
+            "size": 2817,
+            "sha256": "3ef1c1c8fdd23e4f39a5dcfd7587dcec7ded910a2529b0224f3c4ec0cc3c26dd"
+        },
+        {
+            "path": "app/Restore/Integration/Execution/TargetProvisioningException.php",
+            "size": 639,
+            "sha256": "6346170fd963fb432cb392da31c467f211b69f1fe272a3cd4ad1c4aab89fcc30"
+        },
+        {
+            "path": "app/Restore/Integration/Execution/TypedRestoreExecutor.php",
+            "size": 1096,
+            "sha256": "5110533e4a54608b6d9de6ee2f6e225ed5796a119380ebe98c4079ea03e0ff44"
+        },
+        {
+            "path": "app/Restore/Integration/Http/RestoreIntegrationApiAuthorization.php",
+            "size": 934,
+            "sha256": "a3c96c5850ceef554425090e5060d9349e121fd14e853a7cbe1314507526de5c"
+        },
+        {
+            "path": "app/Restore/Integration/Job/RestoreIntegrationJobAccess.php",
+            "size": 1398,
+            "sha256": "8ce3b8a721beb2cdd0dc63cc5d700558704feb606f7859937f589b9654a26a98"
+        },
+        {
+            "path": "app/Restore/Integration/Job/RestoreIntegrationJobException.php",
+            "size": 174,
+            "sha256": "54ff22440d2364b8c7def230c424a743345f14f15be2e6dcf281e2753ebac3fe"
+        },
+        {
+            "path": "app/Restore/Integration/Job/RestoreIntegrationJobGuard.php",
+            "size": 1224,
+            "sha256": "0bd226a856400d8c5f0f5e04154f3be0aafa9939a518a6615cb5e9c84ec7a89d"
+        },
+        {
+            "path": "app/Restore/Integration/Job/RestoreIntegrationJobStore.php",
+            "size": 7134,
+            "sha256": "2f70185308c458fb7c348f3790951ae426a4f554334f875cad954d81771b0dca"
+        },
+        {
+            "path": "app/Restore/Integration/Job/RestoreIntegrationState.php",
+            "size": 874,
+            "sha256": "9f4f796dc1b1f3aaac4f86910820fffb55e525283b6a60c4693fd17e8368e7b6"
+        },
+        {
+            "path": "app/Restore/Integration/Ownership/CleanupDecision.php",
+            "size": 506,
+            "sha256": "cb8c6dcdb2bc09ec4309a753e247f50234e7ae6c6dc1e662ab4c2aa00984abb8"
+        },
+        {
+            "path": "app/Restore/Integration/Ownership/CleanupDecisionEngine.php",
+            "size": 1647,
+            "sha256": "66b1b4f2f3406bf63fe459b43217c769ff4485d7e903adfaaecbdb24214ad3e0"
+        },
+        {
+            "path": "app/Restore/Integration/Ownership/OwnershipEvent.php",
+            "size": 821,
+            "sha256": "9eeb3174085c51fedf1235c2119250c80fde5abfdf2f8f38c83ed7968edadc05"
+        },
+        {
+            "path": "app/Restore/Integration/Ownership/OwnershipJournal.php",
+            "size": 5000,
+            "sha256": "19c773a9d1693bdba49747e48cafff6b0719f949a47ecb0351f7256892c2efc3"
+        },
+        {
+            "path": "app/Restore/Integration/Ownership/OwnershipMarker.php",
+            "size": 1458,
+            "sha256": "d4ebc40122645a693c4a24ae8da2da7fcc3b0a6c77b25d502a5f2cf8607def1f"
+        },
+        {
+            "path": "app/Restore/Integration/Ownership/OwnershipSnapshot.php",
+            "size": 1057,
+            "sha256": "b12fc192f5593351683a9b39813406f5a4511e8f52fffbba994b015b1cc95e35"
+        },
+        {
+            "path": "app/Restore/Integration/Policy/RestoreIntegrationPolicy.php",
+            "size": 1107,
+            "sha256": "17f7ca03c5de0523f6ce5199cb2104d23854cb4ad0982ac59655ac1b69e4837b"
+        },
+        {
+            "path": "app/Restore/Integration/Policy/TrustedRunId.php",
+            "size": 398,
+            "sha256": "ec3e6b0d587cda75d04c54eabc545a1e502f3955fcf35929efd0f66e5cb73f91"
+        },
+        {
+            "path": "app/Restore/Integration/Policy/TrustedTargetName.php",
+            "size": 614,
+            "sha256": "9819a6486811a56a0a4e3a31ed83edf5e6a35fe1a8f534fadf02b06b3d4c2ea7"
+        },
+        {
+            "path": "app/Restore/Integration/Provisioning/CredentialProvisioningPlan.php",
+            "size": 3941,
+            "sha256": "9456432364bd1366ae9a42f32b2da3733a9d0541a512b397b0649effabbe0679"
+        },
+        {
+            "path": "app/Restore/Integration/Readiness/ReadinessAssessment.php",
+            "size": 2167,
+            "sha256": "fe507a08d976051e6d3034d85bc24c0755dccb8d67ade52205aa39cd607dcb62"
+        },
+        {
+            "path": "app/Restore/Integration/Readiness/ReadinessEvidence.php",
+            "size": 4029,
+            "sha256": "f9889d22faa266e88a4107df5ce0118b7293e5f1520ece2bb4b50720abac1177"
+        },
+        {
+            "path": "app/Restore/Integration/Readiness/RestoreIntegrationReadinessChecker.php",
+            "size": 11911,
+            "sha256": "7cbb1db45f3d1a795b511a82926036d2df53da5bfc03a2761c60e12788029a28"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/AtomicFileSecretEnvelopeStore.php",
+            "size": 4081,
+            "sha256": "05d940976f7d19c3b6553d1dc69ecd0ed4f6e036e839ae4ab809da6d5aa5dee7"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/FileSecretEnvelopeStore.php",
+            "size": 629,
+            "sha256": "4a6f1fb2b9a3dfe07d88bf0bba6e54b228f0d195930a37143225ac8e13153fc2"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/NativeDpapiHelper.php",
+            "size": 5278,
+            "sha256": "e3433ee6c15ca7b5b1c85222bbfa28047e7ef7365c7e285c7691838e30c4028c"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/NativeHelperDeploymentVerifier.php",
+            "size": 176,
+            "sha256": "c582c619934330037f567e5182e69ecfa7debe7353221cf5d15ef968f1977fa1"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/NativeSecretEnvelopeStore.php",
+            "size": 377,
+            "sha256": "9687e86ecbc2fec505546154a6efa1421c039ac126c28de1d0136d7d48c46029"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/ProcOpenWorkerProcessRunner.php",
+            "size": 2827,
+            "sha256": "ad3d0bb39d73bb2be3a0bc58da0c8ee0f0794c26ea4b0bd6ed6734cc74fc50b2"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/ProductionNativeHelperDeploymentVerifier.php",
+            "size": 1495,
+            "sha256": "dd79e54ae3dab8d656329207f792af774faa2307117ae92e1dffb3411f14568c"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/RuntimeIdentityProvider.php",
+            "size": 170,
+            "sha256": "db94c254a926f49af520bf9e2e6d6e4f522fc96efd83bda08f3646865a0a6a69"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/SecretEnvelopeCodec.php",
+            "size": 6050,
+            "sha256": "2ec1765e0ac8dce177e157e51654e33093aa3168072d0b2efb97d3dcd83d693e"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/SecretEnvelopeStore.php",
+            "size": 316,
+            "sha256": "3ea52c7e2a2ee030d67588deb8cbc3d7a62ff3eb6edadcbdb220caa14f2d24fe"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/SecretProtector.php",
+            "size": 336,
+            "sha256": "be9a35b095a8761586c0af68774ce88c939c832756b986378d7d80790cd66bec"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/SecretProviderException.php",
+            "size": 169,
+            "sha256": "0950952504e06803e4baadfcf68c3ce99c33224fce726906b92d51670fb1475e"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/SecretRole.php",
+            "size": 195,
+            "sha256": "abd70c1cb5d47e0ed90ad8c8da02a1566ffd269654628f97a954e73ad92201a3"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/SecretServerBinding.php",
+            "size": 973,
+            "sha256": "4f00d39e5042389fc4c1ec7855427ddd110cda1d120317362a08ab639066f8cb"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/SecretValue.php",
+            "size": 1380,
+            "sha256": "8b2e04e5ea000c2b6477866af2635be4dcb3b2d16ec9a68a966a5d5c2be61c7b"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/WindowsAclHardener.php",
+            "size": 277,
+            "sha256": "a44c986664204cb8de293c98c8510b4900ca82f72b434562fd03db6c325a716f"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/WindowsIdentity.php",
+            "size": 944,
+            "sha256": "db5a9787950e8452db3c0e542c8880aba27d1981f6234373284adc0b4288bc16"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/WindowsSecretProvider.php",
+            "size": 2742,
+            "sha256": "9a6ae4136c9f13741da54fac75a4af0b0a753ae022762f79f993594156b44b7f"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/WorkerProcessResult.php",
+            "size": 229,
+            "sha256": "e4321ed1b0c8d44c1fdaea1666d03ce07f1eb0c6c9fd35cb7873cf38e232c968"
+        },
+        {
+            "path": "app/Restore/Integration/Secrets/WorkerProcessRunner.php",
+            "size": 268,
+            "sha256": "bac6cc62e8c3d462256ba420dac8b297adf8f4ce852e9f8eb4a579a54a2edeb4"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/AbstractExecutableStatement.php",
+            "size": 541,
+            "sha256": "2592859ae594ff0234fea9f659711d1a1d751b45af173492edd9dbec0760e59a"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/CreateTableEvidenceParser.php",
+            "size": 5885,
+            "sha256": "3e9434e338a7cee64e512f44d8159e77461a94dc3797db83ee8e0023e5d8fc96"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/ExecutableRestoreStatement.php",
+            "size": 217,
+            "sha256": "4a63a8a9d48cfff62f00710f9aef34b83e0c1cefdf71a8362ffdb1749dac9320"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/ExecutableStatementPolicy.php",
+            "size": 2978,
+            "sha256": "f33c14b0cea014bd0dda6be5b56de92a12aecfb0218c02e08cd820b7d94657ca"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/FileStatementPayload.php",
+            "size": 466,
+            "sha256": "d4e84050649c82b231d9c75b020353756b184e7da75cbd0551a8832f41123bed"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/InlineStatementPayload.php",
+            "size": 269,
+            "sha256": "d19aece182bdd99818bd5a5d667e4d85310dad9e325e355744dd7addc7af4391"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/InsertRowsParser.php",
+            "size": 4456,
+            "sha256": "f6f5c1e295056eddc058e32cb088da6f0287b4d6b565493e301d816c73fe6eaf"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/ParsedInsertRows.php",
+            "size": 665,
+            "sha256": "fc1fbb5db09f8fbb7f1e1f80b95da6380d6b10d1d69bcfcc08a52406586a29ad"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/RestorePlan.php",
+            "size": 1620,
+            "sha256": "30a9158ed381fc68f558c815463f06c48c96f925dfdcb2aedd6722e1e93900d3"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/RestorePlanCompiler.php",
+            "size": 9781,
+            "sha256": "30c14c2edf6aaa1484a6dabdbdffdcbae90024b90fe86a330f72abc4d13c6774"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/RestorePlanItem.php",
+            "size": 149,
+            "sha256": "cc6441248ddacc48de15819dea9a0d3bb9a268805c054850a6bf4b2b05b25ab1"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/RestoreStatementKind.php",
+            "size": 463,
+            "sha256": "73f73f09f519671b6f7f5de98745f5d793e0261d86a7260bf0edec9ff8548db5"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/AlterTable.php",
+            "size": 375,
+            "sha256": "babe07632ab825d541d40ee0b8612df011714c7b408bbb2360989d401779e15a"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/CreatePlaceholderView.php",
+            "size": 398,
+            "sha256": "a4b5421710f2d08f2797c32bb7e3e032fc890348672c8e1ef3eeb30725837a72"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/CreateTable.php",
+            "size": 619,
+            "sha256": "d0afaf5eb7a7f41f43c9cce05681bf4be67cd6fe19cff3be24debe6d5eb95bda"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/DropObject.php",
+            "size": 375,
+            "sha256": "77525193ec4539be936b6fc972dcd20b7b4c0d1066779b1f03957c3295ae8474"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/InsertRows.php",
+            "size": 895,
+            "sha256": "7a33ad0e430812f688e0594df179b449f99e0bc06862f8e0413ef126a12bf091"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/LockTables.php",
+            "size": 375,
+            "sha256": "bff831fc951af086d2dd2a669813148ab788b62f570f92ea5f1ce07ea04bac77"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/SessionDirective.php",
+            "size": 387,
+            "sha256": "690ae43baec1780e177512ce4c40a35402d265ca0d9551823575ce81a14b26c7"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/SourceDatabaseDeclaration.php",
+            "size": 432,
+            "sha256": "ace8913db7b390f035b8d3cd320f1c73fb8791a3b2bbe76a21c58e5bbec00064"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/SourceDatabaseSelection.php",
+            "size": 428,
+            "sha256": "c49a371dfb6ff7a88a97c674415e36c16757079f39ba40470d150d97c0530272"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/Statement/UnlockTables.php",
+            "size": 379,
+            "sha256": "5944acf2d0bba974e7209a23ca05155e85339a27e930f1877a57f51104591278"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/StatementPayload.php",
+            "size": 146,
+            "sha256": "a9b7f99ff579b1a425a2edc1ab0404a45a2476ffb5ecc3f8a6925982e1e18b49"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/StatementSpoolLease.php",
+            "size": 1480,
+            "sha256": "462412946b059b05587a4fbb6788e3f07dd9ca257b60cf30257d782c8b2c710c"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/StatementSpoolWriter.php",
+            "size": 1877,
+            "sha256": "92e0d845cf5f67003e3aeacbf7a9d0e594ebf5c32fc8ff2846d6486bd1300edb"
+        },
+        {
+            "path": "app/Restore/Integration/Sql/ValidatedExecutableStatement.php",
+            "size": 808,
+            "sha256": "60b25e3e5d27bb71e776e50444d08ede594fc093f88390338e01dd3a13457085"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/PostRestoreValidator.php",
+            "size": 7056,
+            "sha256": "b72631ea2083661a516fe1e3f1f111fea6da696227e61b8a97a3cdebcb0758f3"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/RowCanonicalizer.php",
+            "size": 1835,
+            "sha256": "f9a406b23d5e22a83255e51fe3e84532663d82976b585eb7aafb402110dc5656"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/RowEvidenceAccumulator.php",
+            "size": 5505,
+            "sha256": "4907faebed67969a24b1213b4a3c1736c11cf84c6ae573e05a1a2e40e64ad592"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/RowMultisetComparator.php",
+            "size": 1296,
+            "sha256": "874609cd09ceba7c49ffe78f4854a5fd571e37f6c4290dce65c067ffb915ffd0"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/SchemaComparator.php",
+            "size": 1195,
+            "sha256": "71f403f4ade89935f5f4de2fce59ef3c34d932ab3b3826051267a8b5dfa204d0"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/StoredObjectComparator.php",
+            "size": 548,
+            "sha256": "a18a9812df34020ab301cf77cab8417911e5a9c604674c05955915ed0b46ec8a"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/TableDataEvidence.php",
+            "size": 813,
+            "sha256": "ac9f4535d8b002fc263be0cd7932353ff9b847b15d2ddd070ddf4364d5d43d34"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/TypedSqlValue.php",
+            "size": 1007,
+            "sha256": "7507e996ec975c75b0d0180568d898bfe3a430f070120ed3512177fa801e826b"
+        },
+        {
+            "path": "app/Restore/Integration/Validation/ValidationReport.php",
+            "size": 799,
+            "sha256": "ff9804a95ea1a8a931ba7ea221d5f6c91d6a831e5d49f73b593ad51efdbfa8ee"
+        },
+        {
+            "path": "app/Restore/RestoreArtifactValidator.php",
+            "size": 8516,
+            "sha256": "c3d2cc7884344638541d553456cefa38f66ddcb901e9c2841d3bf06558bf2313"
+        },
+        {
+            "path": "app/Restore/RestoreExecutionGuard.php",
+            "size": 1701,
+            "sha256": "b6f74dd58cce971354f091f389f5df2fcd537224bab15883ccd0497e1724fa0d"
+        },
+        {
+            "path": "app/Restore/RestoreJobAccess.php",
+            "size": 3163,
+            "sha256": "cb0da901b61e41f84655b587e1eef1cd788b9deab167ca3501d996b4f7317003"
+        },
+        {
+            "path": "app/Restore/RestoreJobRequestException.php",
+            "size": 362,
+            "sha256": "f479d52b01503ca3ac9875dee647693933e6faf0a605c8b1d43e02d8be009941"
+        },
+        {
+            "path": "app/Restore/RestoreJobStore.php",
+            "size": 7490,
+            "sha256": "6424c10b21e426c4b0046a9f3269147fb51ae3018a13f4fffa0e0794a9f7e18f"
+        },
+        {
+            "path": "app/Restore/RestorePreflightRunner.php",
+            "size": 6696,
+            "sha256": "0b437bbec2ac3f9e58f38d650369ae5007b890e0779f5495c405fc1f2cd05adb"
+        },
+        {
+            "path": "app/Restore/RestoreSafetyGate.php",
+            "size": 602,
+            "sha256": "38f2606aa5d8e8b8d6aab5b14ac010ed4d6fc054f65bbe0ec816e33ff2e65379"
+        },
+        {
+            "path": "app/Restore/RestoreTargetValidator.php",
+            "size": 842,
+            "sha256": "75f7a372a7c242e1a816eb4aa5620bb50702cafaa9fac468d7f3759af87ebd21"
+        },
+        {
+            "path": "app/Restore/Sql/LexedStatement.php",
+            "size": 573,
+            "sha256": "2e9476d81fe77ceb5b2e5e51054d381416430270390e4b3490dcd87f95f058f9"
+        },
+        {
+            "path": "app/Restore/Sql/SqlFileByteReader.php",
+            "size": 1622,
+            "sha256": "35116585528b18dc73f329bbedb3151746adc4ed89cef01da09b5b3c68007395"
+        },
+        {
+            "path": "app/Restore/Sql/SqlStatementLexer.php",
+            "size": 8888,
+            "sha256": "24ce1c2a45058709b3a1a807cb0d9433df3f59da5caff0dfb78af32b2fdfed34"
+        },
+        {
+            "path": "app/Restore/SqlStructureValidator.php",
+            "size": 220,
+            "sha256": "40cbe4a1ab9574a7d1d4af37a1684266f6c816b466919f93d00b7bb57ffb3e56"
+        },
+        {
+            "path": "app/Restore/StructuralSqlParser.php",
+            "size": 15434,
+            "sha256": "8874d237a3cd885787c3de22bd61671199518fb794394f89efee135b5bb6f5c2"
+        },
+        {
+            "path": "app/Support/Auth.php",
+            "size": 2175,
+            "sha256": "dab22b8ff1f8aaf30eeacd791dfdce63cc4acf2a636ed6fe8bb7e5fb2e5a84cc"
+        },
+        {
+            "path": "app/Support/BackupPathPolicy.php",
+            "size": 5433,
+            "sha256": "9734835041f4bc27252c35d7cd9f7e60db4447568f4fc2ef2ab6f57825470b83"
+        },
+        {
+            "path": "app/Support/Config.php",
+            "size": 680,
+            "sha256": "721e0e4b2c6ef7b9bb6408de94805714eb37b29545e053fa5df8c112718ca80b"
+        },
+        {
+            "path": "app/Support/DownloadAuthorization.php",
+            "size": 3080,
+            "sha256": "b19811c185397163a75fed03360395e006a8a0c3a0e1785b0cd90c3456e55eb8"
+        },
+        {
+            "path": "app/Support/Flash.php",
+            "size": 515,
+            "sha256": "9afaf3042f04dff167923fb4666fc165c48d00ce8a8ac6cee673db35246d300a"
+        },
+        {
+            "path": "app/Support/Logger.php",
+            "size": 1180,
+            "sha256": "159ea4dc528bb6fdcc035b40ebe3f417af6cbaa4d8b22b6d9aad1bb5e23c5fe0"
+        },
+        {
+            "path": "app/Support/Request.php",
+            "size": 672,
+            "sha256": "5ab185a6d672aef81fa4b183e12c15fd9a8b73f88ae84de4613e721ad64efd35"
+        },
+        {
+            "path": "app/Support/RuntimeDataBootstrap.php",
+            "size": 1260,
+            "sha256": "0807a5f302f1b9cd3cbbd8612bfdc29473a2cc28a7ae39670e838005309687c0"
+        },
+        {
+            "path": "app/Support/RuntimeDataPaths.php",
+            "size": 6904,
+            "sha256": "df740eeaa91bf4db97b40171324fe87486dea79296e17ee52b4eaa217178a7e4"
+        },
+        {
+            "path": "app/Support/Security.php",
+            "size": 1447,
+            "sha256": "d587ea293ea33b07b17478cb1443a04c1bcffeee2d9de9f6aa8a463eaa02eb1f"
+        },
+        {
+            "path": "app/Support/Session.php",
+            "size": 1997,
+            "sha256": "0bd32c8d37adcc757ae1816acca4ed257ebbec2ceb2d02fbead738dba8f2674f"
+        },
+        {
+            "path": "app/Support/View.php",
+            "size": 1444,
+            "sha256": "bda3fb690c781ec1d908857153e5055f9af0c2de56cc37b861e3d8a438348b23"
+        },
+        {
+            "path": "app/bootstrap.php",
+            "size": 1122,
+            "sha256": "e90d015c0e696eb50cf7a2f4f1ef09c1b5aac21e76561d5a31e5431ae9421200"
+        },
+        {
+            "path": "config/app.php",
+            "size": 574,
+            "sha256": "515ca11c556d36c45dc2b0a0f0510ea324b702a32aef78917dd152df818e39b8"
+        },
+        {
+            "path": "config/local.php.example",
+            "size": 629,
+            "sha256": "5617e0668963ca5ea16081ffea6a507f2e8d7c05631308a50f5d65005016200b"
+        },
+        {
+            "path": "public/assets/app.css",
+            "size": 18643,
+            "sha256": "56b3bae19ba9c8f60003e89f09e4ee81dc1ae6768c8611ddff718b09fc72f66e"
+        },
+        {
+            "path": "public/assets/app.js",
+            "size": 2230,
+            "sha256": "6b3ad9eeca6bb4fb6195b32234fe094019e424e5c5d12aa77b31a57a6d4f3c1b"
+        },
+        {
+            "path": "public/assets/backup-jobs.js",
+            "size": 9218,
+            "sha256": "e8afd1d3f190be6477ead992e754f8ed01b85a82d5f4b1f9edbe8d01e8c7e604"
+        },
+        {
+            "path": "public/assets/restore-integration.js",
+            "size": 562,
+            "sha256": "8b219a074b1e9f6c8b6141c8de3f6919e2fc70a818a383adebf8dd746f542899"
+        },
+        {
+            "path": "public/assets/restore-jobs.js",
+            "size": 3876,
+            "sha256": "e886245695b3ea9bc2dbce39b30d25ff49a152bfd87071c595332a8fa80bbc63"
+        },
+        {
+            "path": "public/download.php",
+            "size": 2422,
+            "sha256": "bc06c93caaa80ec74c38aaf3602858b7adfa75703b1ff0d6e0efeea198a0599a"
+        },
+        {
+            "path": "public/index.php",
+            "size": 16300,
+            "sha256": "79292a95e8322630c8736e11abf660d95c7b78fa05c9737f9f21835fa406e050"
+        },
+        {
+            "path": "public/job.php",
+            "size": 7719,
+            "sha256": "c2807ad58361f43530b1ce84b07dd6700be2666229d26a294da2b6d9c8217a0d"
+        },
+        {
+            "path": "public/restore-integration.php",
+            "size": 2764,
+            "sha256": "ccd9271270084d7d9cd1d5683baf1f688e3f0a03b7b2079a041b024a54017098"
+        },
+        {
+            "path": "public/restore-job.php",
+            "size": 5743,
+            "sha256": "3d1b3c82dc22865cca27dc781ce6d0398fd4fdcb759fdbf65dfb434d2ba9c702"
+        },
+        {
+            "path": "views/layout.php",
+            "size": 3315,
+            "sha256": "3d13c17bd676d3a510c3bef15d8ef97473d7dfc1b98829ecdafe5b4a5e8e3a96"
+        },
+        {
+            "path": "views/pages/backup.php",
+            "size": 7643,
+            "sha256": "e64fa013d052bb1effcbba820e77058367a9b9a3afe922ff310d029b74f1c47a"
+        },
+        {
+            "path": "views/pages/dashboard.php",
+            "size": 3544,
+            "sha256": "1345d2459f5c5ff54cb09de85ae40a8b6fb4409659eb5a768f6623cbc28a1b9d"
+        },
+        {
+            "path": "views/pages/history.php",
+            "size": 4309,
+            "sha256": "37dabe0550523766ef218c576f85bb21e522633105426d5ddf7ce59645bb6bbe"
+        },
+        {
+            "path": "views/pages/login.php",
+            "size": 1196,
+            "sha256": "1f7646a70ed55a6f46df1c6880bc619cda5b63350db20391359fea6e65a0ab90"
+        },
+        {
+            "path": "views/pages/placeholder.php",
+            "size": 447,
+            "sha256": "98e517e54a40ea63e20d42d496c3e13b957e595f968ac1229c1031e5bb258cf3"
+        },
+        {
+            "path": "views/pages/restore-integration.php",
+            "size": 2363,
+            "sha256": "f3d0c30e12bf69cf9674580baebc6f81fdd5363fd7b4b9f4d5a5112dbc5b32f4"
+        },
+        {
+            "path": "views/pages/restore.php",
+            "size": 6519,
+            "sha256": "df4df303a2976074fe0581f4e20935c9575a02695dabbe37e3ad6b2191efaf09"
+        },
+        {
+            "path": "views/pages/settings.php",
+            "size": 3878,
+            "sha256": "08a9b9fab15475a596a88f31210ec884d60c1aa58e6ad8c96fd6876d4ea5ed71"
+        },
+        {
+            "path": "views/partials/navigation.php",
+            "size": 1744,
+            "sha256": "1b82ee8e975d84ef64949a217cbb49e9266096adccb22ce35e145761ac00ce3c"
+        }
+    ],
+    "manifest_digest": "79fbd7a1fadc10c2737b55bf1f6b0bcba20f1ed5c96855a2a484204d80793f96"
+}
