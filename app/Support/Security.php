@@ -33,4 +33,19 @@ final class Security
 
         return trim($name, '._') ?: 'backup';
     }
+
+    /**
+     * @param array<string, mixed> $request
+     * @param array<string, mixed> $session
+     * @return array<int, string>
+     */
+    public static function connectionPasswordSecrets(array $request, array $session): array
+    {
+        $values = [
+            is_string($request['password'] ?? null) ? $request['password'] : '',
+            is_string($session['connection']['password'] ?? null) ? $session['connection']['password'] : '',
+        ];
+
+        return array_values(array_unique(array_filter($values, static fn (string $value): bool => $value !== '')));
+    }
 }

@@ -2,11 +2,11 @@ Options -Indexes
 
 RewriteEngine On
 
-RewriteRule ^(app|config|storage)(/|$) - [F,L]
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
-RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
-RewriteRule ^(.*)$ public/$1 [L]
+RewriteRule (^|/)\. - [F,L]
+RewriteRule ^(app|config|storage|views|tests|tools|docs|native)(/|$) - [F,L]
 
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^$ public/index.php [L]
+<FilesMatch "^(PHASE[0-9]+_.*\.md|RESTORE_INTEGRATION_.*\.md|TEST_BASELINE\.md|README\.md|\.gitignore|\.gitattributes)$">
+    Require all denied
+</FilesMatch>
+RewriteRule ^(?:index\.php)?$ public/index.php [END]
+RewriteRule ^(assets(?:/.*)?|job\.php|restore-job\.php|restore-integration\.php|download\.php)$ public/$1 [END]

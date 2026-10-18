@@ -7,14 +7,18 @@ namespace BackupApp\Backup;
 use BackupApp\Support\Security;
 use mysqli;
 use RuntimeException;
+use Throwable;
 
 final class BackupService
 {
     private const COMPLETION_MARKER = '-- Backup completed successfully';
     private const INSERT_BATCH_LIMIT = 100;
 
-    public function __construct(private string $backupPath)
+    private BackupArtifactPublisher $publisher;
+
+    public function __construct(private string $backupPath, ?BackupArtifactPublisher $publisher = null)
     {
+        $this->publisher = $publisher ?? new BackupArtifactPublisher();
     }
 
     /**
@@ -34,7 +38,7 @@ final class BackupService
             throw new RuntimeException('Cannot create database backup folder');
         }
 
-        $timestamp = date('Y-m-d_H-i-s');
+        $timestamp = date('Y-m-d_H-i-s') . '_' . bin2hex(random_bytes(4));
         $filename = Security::safeFilename($timestamp . '_' . $database) . '.sql';
         $relativePath = $databaseFolder . '/' . $filename;
         $path = $folderPath . DIRECTORY_SEPARATOR . $filename;
@@ -61,7 +65,8 @@ final class BackupService
         ];
 
         try {
-            $this->writeHeader($handle, $hashContext, $database);
+            try {
+                $this->writeHeader($handle, $hashContext, $database);
             $objects = $this->listObjects($connection);
             $tables = array_values(array_filter(
                 $objects,
@@ -102,25 +107,17 @@ final class BackupService
             $stats['functions'] = $routineStats['functions'];
             $stats['events'] = $this->writeEvents($connection, $handle, $hashContext, $database);
 
-            $this->writeFooter($handle, $hashContext);
-        } finally {
-            fclose($handle);
-        }
-
-        if (!$this->fileHasCompletionMarker($temporaryPath)) {
+                $this->writeFooter($handle, $hashContext);
+            } finally {
+                fclose($handle);
+            }
+        } catch (Throwable $exception) {
             @unlink($temporaryPath);
-            throw new RuntimeException('Backup file was not completed');
+            throw $exception;
         }
-
-        if (!rename($temporaryPath, $path)) {
-            @unlink($temporaryPath);
-            throw new RuntimeException('Cannot finalize backup file');
-        }
-
-        @chmod($path, 0640);
 
         $sha256 = hash_final($hashContext);
-        $bytes = filesize($path) ?: 0;
+        $bytes = filesize($temporaryPath) ?: 0;
         $manifest = [
             'database' => $database,
             'filename' => $filename,
@@ -146,20 +143,14 @@ final class BackupService
             ],
         ];
 
-        $encodedManifest = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-        if ($encodedManifest === false || file_put_contents($manifestPath, $encodedManifest . "\n", LOCK_EX) === false) {
-            throw new RuntimeException('Cannot create backup manifest');
-        }
-
-        @chmod($manifestPath, 0640);
+        $published = $this->publisher->publish($temporaryPath, $path, $manifest, $sha256);
 
         return [
             'database' => $database,
             'filename' => $filename,
             'relative_path' => $relativePath,
-            'bytes' => $bytes,
-            'sha256' => $sha256,
+            'bytes' => $published['bytes'],
+            'sha256' => $published['sha256'],
             'manifest_path' => $databaseFolder . '/' . basename($manifestPath),
         ];
     }
