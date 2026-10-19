@@ -14,28 +14,39 @@ final class DatabaseRepository
      */
     public function listDatabases(mysqli $connection): array
     {
+        return $this->catalog($connection)['databases'];
+    }
+
+    /** Account-visible schema names only; never enumerate tables or protected schema metadata.
+     * @return array{databases:list<string>,system_databases:list<string>,unsupported_databases:list<string>} */
+    public function catalog(mysqli $connection):array
+    {
         $policy = new AuthorizedSourcePolicy();
-        $allowed = $policy->authorizedSources();
-        $quoted = array_map(
-            static fn (string $database): string => "'" . $database . "'",
-            $allowed
-        );
         $result = $connection->query(
             'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA'
-            . ' WHERE SCHEMA_NAME IN (' . implode(', ', $quoted) . ')'
+            . " WHERE LOWER(SCHEMA_NAME) <> 'jhcisdb' ORDER BY SCHEMA_NAME"
         );
-        $found = [];
+        $found = ['databases'=>[],'system_databases'=>[],'unsupported_databases'=>[]];
 
         while ($row = $result->fetch_row()) {
             $database = (string) $row[0];
 
-            if (!$policy->isAuthorized($database)) {
+            if ($policy->isProtected($database)) {
                 throw new DomainException('catalog_scope_violation');
             }
 
-            $found[] = $database;
+            $key=$policy->isSystem($database)?'system_databases':($policy->isAuthorized($database)?'databases':'unsupported_databases');
+            if(!in_array($database,$found[$key],true)){$found[$key][]=$database;}
         }
 
-        return array_values(array_intersect($allowed, array_unique($found)));
+        return $found;
+    }
+
+    public function assertVisible(mysqli $connection,string $database):void
+    {
+        (new AuthorizedSourcePolicy())->assertAuthorized($database);
+        $escaped=$connection->real_escape_string($database);
+        $row=$connection->query("SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE LOWER(SCHEMA_NAME) <> 'jhcisdb' AND SCHEMA_NAME = '{$escaped}'")->fetch_assoc();
+        if(($row['SCHEMA_NAME']??null)!==$database){throw new DomainException('source_not_visible_to_account');}
     }
 }

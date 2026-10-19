@@ -65,7 +65,7 @@ test('backup view never renders the server-side database password', static funct
     ], 'backup', ['app_name' => 'Backup Manager']);
 
     assertNotContainsValue($sentinel, $html);
-    assertContainsValue('name="password"', $html);
-    assertNotContainsValue('name="password" value=', $html);
+    assertNotContainsValue('name="password"', $html);
+    assertContainsValue('page=settings', $html);
 });
 

@@ -71,7 +71,11 @@ final class ImportResultPresentation
         return match($code){
             ''=>'',
             'import_credential_required'=>'กรอกรหัสผ่านบัญชี Import เฉพาะงานนี้ หากไม่มี ให้ติดต่อผู้ดูแล ระบบไม่รีเซ็ตรหัสผ่านอัตโนมัติ',
-            'import_connect_export_reader_first'=>'เชื่อมต่อ backup_reader ที่หน้า Export ก่อน แล้วกลับมายืนยัน Import',
+            'import_connect_export_reader_first','connection_settings_missing'=>'ไปที่ Settings เพื่อบันทึกและทดสอบโปรไฟล์ MySQL ก่อน แล้วกลับมายืนยัน Import',
+            'import_legacy_job_read_only'=>'งานเก่าเก็บเป็นประวัติ ไม่เริ่มซ้ำด้วยโปรไฟล์ใหม่',
+            'import_insufficient_target_privileges','import_privilege_semantics_unsupported'=>'สิทธิ์ของบัญชีไม่เพียงพอหรือยังพิสูจน์ไม่ได้สำหรับฐานใหม่ ระบบไม่เพิ่ม GRANT อัตโนมัติ',
+            'import_target_already_exists'=>'ชื่อฐานเป้าหมายมีอยู่แล้ว หยุดโดยไม่เขียนทับหรือ Import ซ้ำ',
+            'import_connection_settings_changed'=>'Settings เปลี่ยนหลังเตรียมงาน งานเดิมเริ่มต่อไม่ได้ ให้ผู้ดูแลตรวจ Ownership/งานเดิมก่อนเตรียมงานใหม่ ห้าม Import ซ้ำลงฐานเดิม',
             'import_provisioning_required'=>'ยังไม่มีบัญชีและฐานใหม่ที่ยืนยัน Ownership ให้ผู้ดูแลเตรียมเฉพาะชื่อตามงานก่อน ไม่ต้องกดสร้างงานซ้ำ',
             'import_manifest_missing','import_unsupported_or_untrusted_dump','import_artifact_origin_mismatch',
             'import_artifact_integrity_failed','import_artifact_changed','import_input_hash_changed','import_input_size_changed'

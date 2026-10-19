@@ -43,7 +43,7 @@ final class BackupJobAccess
         return $result;
     }
 
-    public function register(string $jobId): void
+    public function register(string $jobId,?array $selected=null): void
     {
         $this->assertValidId($jobId);
         $connectionContext = $this->currentConnectionContext();
@@ -63,6 +63,18 @@ final class BackupJobAccess
             $contexts,
             array_flip($_SESSION['backup_job_ids'])
         );
+        if($selected!==null){$_SESSION['backup_job_selections'][$jobId]=$this->select($selected,false,$selected);}
+        $_SESSION['backup_job_selections']=array_intersect_key($_SESSION['backup_job_selections']??[],array_flip($_SESSION['backup_job_ids']));
+    }
+
+    public function assertSelection(string $jobId,array $selected):void
+    {
+        $this->assertOwned($jobId);
+        $expected=$_SESSION['backup_job_selections'][$jobId]??null;
+        if(!$this->matchesCurrentConnection($jobId)||!is_array($expected)||$expected!==$selected){
+            throw new BackupJobRequestException('ขอบเขตฐานข้อมูลของงานไม่ตรงกับรายการที่ยืนยัน กรุณาสร้างงานใหม่',409);
+        }
+        $this->select($selected,false,$expected);
     }
 
     public function owns(string $jobId): bool

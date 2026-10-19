@@ -23,9 +23,14 @@ final class Auth
         return $remoteAddress === '127.0.0.1' || $remoteAddress === '::1';
     }
 
-    public function isAuthorized(string $remoteAddress): bool
+    public function isAuthorized(string $remoteAddress, ?string $host = null): bool
     {
-        return $this->isDirectLoopback($remoteAddress);
+        if (!$this->isDirectLoopback($remoteAddress)) { return false; }
+        // One-argument CLI callers are isolated tests; HTTP entrypoints always supply Host explicitly.
+        if ($host === null && PHP_SAPI === 'cli') { return true; }
+        $host ??= (string) ($_SERVER['HTTP_HOST'] ?? '');
+        if (preg_match('/^(?:localhost|127\.0\.0\.1|\[::1\])(?::([0-9]{1,5}))?$/iD', $host, $match) !== 1) { return false; }
+        return !isset($match[1]) || ((int) $match[1] >= 1 && (int) $match[1] <= 65535);
     }
 
     public function attempt(string $username, string $password): bool

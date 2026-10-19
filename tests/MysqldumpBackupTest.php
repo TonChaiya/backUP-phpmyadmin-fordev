@@ -7,7 +7,7 @@ use BackupApp\Backup\MysqldumpProcess;
 use BackupApp\Backup\TemporaryMysqlCredentials;
 
 test('Mysqldump command pins executable and excludes privileged objects', static function (): void {
-    $args = (new MysqldumpCommand())->arguments('autoprintdb', 'C:\\private\\client.cnf');
+    $args = (new MysqldumpCommand())->arguments('autoprintdb', 'C:\\private\\client.cnf',['autoprintdb']);
     assertSameValue(MysqldumpCommand::BINARY, $args[0]);
     assertSameValue('--defaults-file=C:\\private\\client.cnf', $args[1]);
     assertSameValue('autoprintdb', end($args));
@@ -38,42 +38,37 @@ test('Mysqldump rejects unauthorized sources before command construction', stati
 });
 
 test('Mysqldump connection policy rejects endpoint and runtime identity drift', static function (): void {
-    foreach ([['127.0.0.1',3333,'backup_reader'], ['localhost',3306,'backup_reader'], ['remote',3306,'backup_reader'], ['127.0.0.1',3306,'root']] as [$host,$port,$username]) {
+    foreach ([['127.0.0.1',3333,'fixture_user'], ['localhost',0,'fixture_user'], ['remote',3306,'fixture_user'], ['127.0.0.1',3306,'--option']] as [$host,$port,$username]) {
         try {
             MysqldumpCommand::assertConnection(compact('host','port','username'));
             throw new LogicException('drift accepted');
         } catch (RuntimeException) {}
     }
-    MysqldumpCommand::assertConnection(['host'=>'127.0.0.1','port'=>3306,'username'=>'backup_reader']);
+    MysqldumpCommand::assertConnection(['host'=>'127.0.0.1','port'=>3306,'username'=>'fixture_user']);
 });
 
 test('Mysqldump server identity rejects UUID version account role and port mismatch', static function (): void {
-    $valid=['version'=>'8.4.3','server_uuid'=>MysqldumpCommand::SERVER_UUID,'port'=>3306,'account'=>'backup_reader@localhost','roles'=>'NONE','partial_revokes'=>'0'];
+    $valid=['version'=>'8.4.3','server_uuid'=>MysqldumpCommand::SERVER_UUID,'port'=>3306,'account'=>'fixture_user@localhost','roles'=>'NONE','partial_revokes'=>'0'];
     MysqldumpCommand::assertServer($valid);
-    foreach(['version'=>'8.4.4','server_uuid'=>'other','port'=>3333,'account'=>'root@localhost','roles'=>'active-role','partial_revokes'=>'1'] as $field=>$value){
-        try{MysqldumpCommand::assertServer(array_replace($valid,[$field=>$value]));throw new LogicException('identity drift accepted');}catch(RuntimeException){}
+    foreach(['version'=>'8.4.4','server_uuid'=>'other','port'=>3333,'account'=>'root@localhost','roles'=>'active-role'] as $field=>$value){
+        try{MysqldumpCommand::assertServer(array_replace($valid,[$field=>$value]),$valid);throw new LogicException('identity drift accepted');}catch(RuntimeException){}
     }
 });
 
-test('Mysqldump reader grants require exact SELECT-only escaped schema scope', static function (): void {
-    $grants=['GRANT USAGE ON *.* TO `backup_reader`@`localhost`'];
-    foreach(['autoprintdb','drugmap\\_db','drug\\_stock\\_check','prepack\\_labels'] as $db){$grants[]='GRANT SELECT ON `'.$db.'`.* TO `backup_reader`@`localhost`';}
-    MysqldumpCommand::assertGrants($grants);
-    foreach([
-        [...$grants,'GRANT EVENT ON `autoprintdb`.* TO `backup_reader`@`localhost`'],
-        array_slice($grants,0,4),
-        array_replace($grants,[2=>'GRANT SELECT ON `drugmap_db`.* TO `backup_reader`@`localhost`']),
-    ] as $unsafe){
-        try{MysqldumpCommand::assertGrants($unsafe);throw new LogicException('broad grants accepted');}catch(RuntimeException){}
+test('Mysqldump generic profile retains exact saved UUID and authenticated account binding', static function (): void {
+    $identity=['version'=>'8.4.3','server_uuid'=>MysqldumpCommand::SERVER_UUID,'port'=>3306,'account'=>'root@localhost','roles'=>'NONE'];
+    MysqldumpCommand::assertServer($identity,['username'=>'root','server_uuid'=>MysqldumpCommand::SERVER_UUID,'account'=>'root@localhost','port'=>3306]);
+    foreach([['server_uuid'=>'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'],['account'=>'root@127.0.0.1']] as $change){
+        try{MysqldumpCommand::assertServer(array_replace($identity,$change),$identity);throw new LogicException('binding drift accepted');}catch(RuntimeException){}
     }
 });
 
 test('Mysql option credentials preserve special characters without option injection', static function (): void {
     $password = "synthetic\"\\\n\r\t#; [mysqldump]\nall-databases=1";
-    $encoded = TemporaryMysqlCredentials::optionFile($password);
-    assertSameValue(3, count(explode("\n", trim($encoded))));
+    $encoded = TemporaryMysqlCredentials::optionFile($password,'fixture_user');
+    assertSameValue(5, count(explode("\n", trim($encoded))));
     assertContainsValue('password="synthetic\\"\\\\\\n\\r\\t', $encoded);
-    assertContainsValue('user=backup_reader', $encoded);
+    assertContainsValue('user=fixture_user', $encoded);
     assertNotContainsValue("\nall-databases", $encoded);
 });
 

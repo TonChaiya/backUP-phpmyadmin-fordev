@@ -11,6 +11,7 @@ use BackupApp\Import\MysqliImportDatabase;
 use BackupApp\Import\MysqlImportClient;
 use BackupApp\Database\FileDatabaseOperationLock;
 use BackupApp\Http\Controller\SettingsController;
+use BackupApp\Http\Controller\BackupController;
 use BackupApp\Support\Auth;
 use BackupApp\Support\BackupPathPolicy;
 use BackupApp\Support\Security;
@@ -25,12 +26,25 @@ function importJson(array $payload,int $status=200):never
 }
 function importJobView(ImportJobStore $store,array $job,string $reviewDirectory):array
 {
-    try{$store->requireOwnership($job);$job['provisioning_ready']=true;}catch(RuntimeException){$job['provisioning_ready']=false;}
-    $job['source_reader_connected']=is_array($_SESSION['connection']??null);
+    if(($job['mode']??'')==='saved_profile'){$job['provisioning_ready']=true;}
+    else{$job['provisioning_ready']=false;}
+    $job['connection_context_valid']=true;
+    if($job['status']==='awaiting_provisioning'){
+        try{
+            global $config;
+            $connections=BackupController::forApplication($config,dirname(__DIR__));$connections->credentials();
+            ImportAccess::requireConnectionRevision($job['id'],$connections->revision());
+        }catch(Throwable){$job['connection_context_valid']=false;}
+    }
+    $check=$_SESSION['saved_connection_check']??[];
+    $job['source_reader_connected']=($check['connected']??false)===true
+        &&($check['revision']??null)===($_SESSION['saved_connection_revision']??null)
+        &&strtotime((string)($check['checked_at']??''))>time()-30;
     $job['presentation']=ImportResultPresentation::forJob($job,ImportResultPresentation::loadReview($reviewDirectory,$job));
+    if(!$job['connection_context_valid']){$job['presentation']['message']=ImportResultPresentation::message('import_connection_settings_changed');}
     return $job;
 }
-if(!(new Auth())->isAuthorized((string)($_SERVER['REMOTE_ADDR']??''))){importJson(['ok'=>false,'error'=>'loopback_only'],403);}
+if(!(new Auth())->isAuthorized((string)($_SERVER['REMOTE_ADDR']??''),(string)($_SERVER['HTTP_HOST']??''))){importJson(['ok'=>false,'error'=>'loopback_only'],403);}
 $isGet=($_SERVER['REQUEST_METHOD']??'GET')==='GET';
 $csrf=$isGet?($_SERVER['HTTP_X_CSRF_TOKEN']??null):($_POST['csrf_token']??null);
 if(!is_string($csrf)||!Security::validateCsrf($csrf)){importJson(['ok'=>false,'error'=>'csrf_invalid'],419);}
@@ -47,25 +61,31 @@ try{
     if($isGet){importJson(['ok'=>false,'error'=>'method_not_allowed'],405);}
     if(isset($_POST['target'])||isset($_POST['username'])||isset($_POST['host'])||isset($_POST['port'])){throw new RuntimeException('import_browser_scope_override_rejected');}
     if($action==='prepare'){
+        $connections=BackupController::forApplication($config,dirname(__DIR__));
+        $status=$connections->verify();if(!$status['connected']){throw new RuntimeException('connection_settings_missing');}
+        $profile=$connections->credentials();
         $relative=is_string($_POST['artifact']??null)?$_POST['artifact']:'';
-        $job=$store->create($artifacts->verify($relative));ImportAccess::register($job['id']);
+        $job=$store->create($artifacts->verify($relative),$profile);ImportAccess::register($job['id'],$connections->revision());
         importJson(['ok'=>true,'job'=>importJobView($store,$job,$config['restore_job_path'].'/local-import')],201);
     }
     if($action==='execute'){
         $id=is_string($_POST['job_id']??null)?$_POST['job_id']:'';ImportAccess::requireOwned($id);
+        $connections=BackupController::forApplication($config,dirname(__DIR__));$connections->synchronize();
+        ImportAccess::requireConnectionRevision($id,$connections->revision());
         if(($_POST['confirmation']??'')!=='IMPORT'){throw new RuntimeException('import_explicit_confirmation_required');}
-        $job=$store->read($id);$store->requireOwnership($job);
-        $password=is_string($_POST['import_password']??null)?$_POST['import_password']:'';
-        if($password===''){throw new RuntimeException('import_credential_required');}
-        $reader=$_SESSION['connection']??null;
-        if(!is_array($reader)){throw new RuntimeException('import_connect_export_reader_first');}
+        $job=$store->read($id);
+        if(($job['mode']??'')!=='saved_profile'){throw new RuntimeException('import_legacy_job_read_only');}
+        $reader=$connections->credentials();$readerRevision=$connections->revision();
         $runner=new ImportRunner($store,new FileDatabaseOperationLock($config['database_operation_lock_path']),$artifacts);
         session_write_close();ignore_user_abort(true);@set_time_limit(0);
-        $job=$runner->run($id,new MysqliImportDatabase($reader,$password),new MysqlImportClient(),$password);
-        $password=null;importJson(['ok'=>true,'job'=>importJobView($store,$job,$config['restore_job_path'].'/local-import')]);
+        $job=$runner->run($id,new MysqliImportDatabase($reader,'',fn()=>$connections->assertRevision($readerRevision),$store->recordOwnership(...)),new MysqlImportClient(profile:$reader),'');
+        importJson(['ok'=>true,'job'=>importJobView($store,$job,$config['restore_job_path'].'/local-import')]);
     }
     importJson(['ok'=>false,'error'=>'unknown_action'],400);
 }catch(Throwable $e){
+    if(str_starts_with($e->getMessage(),'connection_')){
+        importJson(['ok'=>false,'error'=>$e->getMessage()==='connection_settings_changed'?'import_connection_settings_changed':'import_connect_export_reader_first'],409);
+    }
     $code=$e->getMessage();if(preg_match('/^(?:import|source|mysql_import|mysqldump)_[a-z0-9_]+$/D',$code)!==1){$code='import_operation_failed';}
     $status=$code==='import_job_not_owned'?404:409;
     importJson(['ok'=>false,'error'=>$code],$status);

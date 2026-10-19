@@ -1,5 +1,87 @@
 # Change-Based Test Baseline
 
+## 2026-10-19 — Account-based discovery and Export selection
+
+User clarified that the four-schema allowlist was controlled-live-test scope, not permanent product policy. Current catalog follows the saved account's visible schemas; protected jhcisdb (case-insensitive) is excluded in the SQL predicate and rejected again on any unexpected result. Only schema names are discovered; no protected table/object inspection. System schemas information_schema/performance_schema/mysql/sys display separately, are not Export/Import eligible and never enter Select All. Windows-unsafe artifact names are also displayed separately as unsupported; ordinary Unicode/spaces/leading-hyphen names are supported. No live discovery was run under this task's fake-only test policy.
+
+Selection is drawn from the fresh account catalog, bound to the session-owned job, compared with persisted names before execution and rechecked against fresh account visibility. Service checks exact selected schema visibility before table metadata; engine/command require selected scope and use native -- argument termination. Old queued jobs without selection evidence cannot resume automatically; history/artifacts unchanged. Import source eligibility follows the new policy, with Unicode-safe contained artifact names; hash/provenance/identity/new-target guards unchanged.
+
+### Fresh focused verification
+
+**29 PASS / 0 FAIL / 0 SKIP**, not the previous79-suite rerun. All PHP invocations used `-d disable_functions=mysqli_init`; fake mysqli/catalog/dump adapters and isolated temporary storage only, no native client execution:
+
+| Selected checks | PASS |
+|---|---:|
+| DatabaseDiscoveryTest: dynamic names, separated system/unsupported names, Select All, forged selection/job rejection, scoped argv, saved-profile catalog projection/UI, vanished source rejection before table access, Unicode Import artifacts | 8 |
+| ManualBackupSourcePolicyTest: generic eligibility, protected SQL/result rejection, forged protected selection/storage/operation guards | 6 |
+| Phase2JobApiAndUiTest: affected selection/API/ownership/presentation contract | 5 |
+| LocalImportArtifactTest: affected source/path/provenance/hash checks | 3 |
+| Existing fake service publication, failure, unsupported engine/view and sequential runner artifact checks (individual name filters only) | 4 |
+| Existing native command construction/protected source checks (construction only, no --help/--version/process) | 2 |
+| Existing Export view selection/search/confirmation rendering check (individual name filter) | 1 |
+
+TDD initial new discovery tests0/4, then green; new fixture runner initially failed because its old fake catalog/selected scope covered only one of its two fixture names; corrected fixture scope/catalog, then passed. Changed PHP syntax17/17 PASS; git diff --check PASS. No UI JavaScript change. Independent source-only targeted review found no Important/Critical issue; no reviewer DB/HTTP/test actions. Previous native Export/Import acceptance evidence reused without repeating execution or upgrading snapshot fidelity.
+
+Files changed in this task: app/Database/{AuthorizedSourcePolicy,DatabaseRepository}; app/Backup/{BackupJobAccess,BackupService,MysqliBackupOperation,MysqldumpEngine,MysqldumpCommand}; app/Http/Controller/BackupController; app/Import/ImportArtifactVerifier; public/{index,job}; views/pages/backup; tests/{DatabaseDiscoveryTest (new),ManualBackupSourcePolicyTest,MysqldumpBackupTest,MysqldumpServiceTest,LocalImportArtifactTest}; README.md, AGENTS.md, docs/{ARCHITECTURE,LOCAL_USER_GUIDE,LOCAL_MYSQL_MANAGER}, TEST_BASELINE.md. No source files removed.
+
+Limitations/NOT VERIFIED: live dynamic catalog/browser rendering/native export of newly permitted names intentionally not tested. Visibility does not prove all required table privileges or supported object types; native privilege and InnoDB/profile checks still apply. Windows-unsafe names remain ineligible. System schemas are display-only (no optional manual-system Export). Same-runtime/admin compromise and concurrent external DDL limits remain unchanged.
+
+Safety for this discovery task: no MySQL connection/query, database/account/GRANT mutation, Export/Import execution, native executable invocation, original backup/history deletion, Apache/MySQL restart, commit/push/tag/release. Own temporary fixture files only. Existing accidental target remains OWNERSHIP UNPROVEN and untouched.
+
+## 2026-10-19 — Live Settings check before the superseding discovery request
+
+Actual existing Laragon browser at localhost:8081/backUP-phpmyadmin-fordev/index.php?page=settings showed Connected with the user's saved profile (06:28:00Z). Test Connection visibly returned success (06:28:10Z); Save Settings without changing fields/password returned success and Connected (06:28:22Z). No credentials read out or changed, no Export/Import controls pressed. This occurred before source discovery changes, so it is not live verification of the new catalog. Fresh Session, disconnected-path and Export browser checks were not completed when the user superseded that task; remain NOT VERIFIED.
+
+Existing incident evidence inspected: application app.log and the already recorded failed test output did not establish an exact accidental target name. No database/directory discovery, ownership inference, cleanup or DROP was attempted. Status stays **OWNERSHIP UNPROVEN**. Older incident details below remain intact.
+
+## 2026-10-19 — Generic local MySQL profile / empty password / saved-profile Import
+
+Current implementation supersedes the dedicated-reader policy in older entries; those entries remain historical evidence, not new PASS results. No account was recreated/reset/GRANTed. Active PHP/config/JS/views/tests and maintained README/AGENTS/Architecture/User Guide/Local Manager docs contain no dependency on the former special username.
+
+Settings defaults are local127.0.0.1:3306/root/empty, **not used until explicit Test/Save**. No profile, saved-empty, preserved nonempty, explicit Replace/Clear are distinct. Test never persists; Save probes first, captures native UUID/CURRENT_USER and requires confirmation for endpoint/UUID/account changes. Empty password is valid, not a disconnected sentinel. Unsaved profiles have no fabricated last-check timestamp. Private LocalAppData storage/NTFS ACL/atomic CAS remain, v1 readable/v2 written, plaintext-at-rest limitation unchanged. Active roles remain unsupported; no remote/port3333.
+
+Export retains the native engine/sequential locks/publication/download; connection credentials include full saved UUID/account all the way through the adapter. Native client option files now carry the generic validated username/endpoint and escaped password, including empty; passwords never enter argv or persisted jobs/manifests. Four-source allowlist unchanged regardless of account privilege.
+
+New Import jobs use mode=saved_profile and the same private configuration, no separate password field or new account. Preparing verifies file/provenance/hash and same native server binding, generates only the new target name. Execution confirms IMPORT, checks revision under shared lock, actual identity, conservative sufficient target grants (SELECT/INSERT/CREATE/REFERENCES, global or exact escaped target scope, partial_revokes=0), target absence, then CREATE without IF NOT EXISTS and exact ownership journal before native import. Collision/journal failure stops; no automatic DROP/retry. Old jobs/history stay unchanged/read-only via HTTP. Schema/count comparison and independent historical review presentation retained; snapshot-value fidelity still NOT VERIFIED. SQL non-redirection relies on pinned trusted producer/options, source allowlist, no stored objects/cross-schema FK and immutable provenance/hash, not a general SQL parser or protection from same-Windows-account compromise.
+
+### Actual focused results
+
+Final guarded change-based run: **79 PASS / 0 FAIL / 0 SKIP**: AutomaticConnectionTest11, GenericConnectionTest6, MysqldumpBackupTest10, MysqldumpServiceTest8, LocalImportArtifactTest3, LocalImportTest6, LocalImportRunnerTest7, LocalImportUiTest2, LocalManagerPresentationTest5, Phase4UiTest8, RoutingAndViewTest4, CleanupDependencyTest3, Node presentation fixtures6. PHP tests run with `php -d disable_functions=mysqli_init tests/run.php <suite>`; the new adapter fixture refuses to run without that process-level no-live guard and validates the injected factory seam. Native clients invoked only for offline --version/--help; actual Export/Import clients in lifecycle tests use fake process adapters. Synthetic private NTFS artifacts removed only by exact owned paths. Changed PHP syntax35/35, JS syntax2/2 and git diff --check PASS.
+
+RED/GREEN: new empty-password/profile/grant tests initially0/3; timestamp regression5/6 then6/6; initial fake adapter test failed as described in the incident below. Updated obsolete credential-form/source-contract assertions follow the new intended UI. No full regression. Earlier live Export4/4, focused39/39 and historical Import/schema/live-source-value evidence reused, not rerun or upgraded.
+
+Independent source-only review found one P1: Export endpoint discarded saved UUID/account while rebuilding credentials. Fixed by preserving the complete validated profile; reviewer rechecked and found no remaining Important/Critical issue in the targeted source. No independent live inspection occurred.
+
+### Operational incident — NOT an offline-only session
+
+During the **first new Import adapter fixture**, a fifth injected factory argument was passed before the constructor declared that parameter. PHP ignored the extra argument and used the real ConnectionFactory. The executed path connected to local MySQL using the intended synthetic root/empty fixture, checked identity/grants and absence, **created one random empty generated target database**, then checked the second connection identity. No SQL artifact was imported, no source tables/schema/rows or protected database were queried, and no account/GRANT mutation occurred on that path. This is inferred from the executed path returning successfully and is not independently confirmed by live audit.
+
+The generated exact target name existed only in the failed test process and was not captured in output/persistent ownership evidence. **Exact target identity/current emptiness remain NOT VERIFIED.** It was not searched for, dropped, moved or otherwise changed afterwards. There is no safe ownership-based cleanup authorization/evidence; never infer ownership from a prefix. This was an unintended persistent mutation outside the planned fixture-only test and was disclosed to the user during work. No claim that this entire work session was offline or mutation-free is made.
+
+Remediation: explicit injected factory is now declared and used; fixture verifies its presence and refuses execution unless mysqli_init is disabled. Subsequent selected tests were run with that guard. No further intentional live calls, real Export/Import, cleanup, credential enrollment, account/grant changes, service/restart/config mutation, commit/push/tag/release.
+
+### Acceptance and remaining gates
+
+Offline implementation/focused checks PASS. **LIVE CONNECTION NOT VERIFIED**: no application profile was saved with real credentials, no Settings/Apache/fresh-browser live acceptance or real Export/Import rerun. Browser rendering remains NOT VERIFIED (isolated PHP route and JS DOM fixtures tested). Overall task **PARTIAL**, not live PASS. The unintended new target requires separately authorized read-only identification/ownership investigation before any possible cleanup; do not guess its name or DROP. Original historical Import acceptance remains PARTIAL due to unverified SQL-snapshot values.
+
+## 2026-10-19 — Automatic saved MySQL connection / Settings management
+
+Scope: Settings-only reader form, private persistent configuration, automatic actual verification boundary, queued-context invalidation and affected UI/API access. No Export/Import execution or unrelated full regression.
+
+Implementation: ConnectionSettingsStore + WindowsPrivateDirectory; plaintext `%LOCALAPPDATA%/BackupPhpMyAdmin/ConnectionSettings/<project-hash>/settings.json` outside source/web root, owner/runtime SID plus SYSTEM NTFS ACL, reparse/path checks, bounded JSON, exclusive lock/revision CAS, create-only temp + fsync + atomic rename. No encryption claim, no config/local.php modification, no password in Session/HTML/API/jobs/manifests. Blank Save preserves; explicit clear disconnects. Import target password remains separate per-request. Actual page checks occur only when configured on Dashboard/Export/Import/Settings; polling/assets/History do not query MySQL. Save uses existing shared operation lock; both database adapters assert saved revision under that lock before their first connection. Exact endpoint/reader/server pins and four-source policy unchanged.
+
+Fresh focused results: **54 PASS / 0 FAIL / 0 SKIP** — PHP AutomaticConnectionTest11, LocalManagerPresentationTest5, Phase4UiTest8, RoutingAndViewTest4, Phase2JobApiAndUiTest5, LocalImportUiTest2, CleanupDependencyTest3, SecurityFoundationTest10; Node presentation fixtures6. PHP syntax **19/19 PASS**, both changed JavaScript files syntax PASS, git diff --check PASS (Git reports LF/CRLF normalization warnings, not whitespace failures).
+
+Evidence: persistence across a fresh Session with fake MySQL probe; real status/failure/no stale lists; unsaved Test; blank/clear; wrong host/port3333/root rejection before probing; unauthorized catalog rejection; no secret disclosure; shared-lock Save exclusion; cross-Session revision invalidation; both native adapters stop before SQL on stale revision; tampered private SID/server/role/JSON rejection; atomic replacement failure preserves previous record. One synthetic-only real Windows NTFS test created its own previously absent LocalAppData hash leaf, verified restricted ACL/read/atomic overwrite, and removed only its own two fixed files and leaf. Empty restricted parent application directories may remain. No real credential enrolled.
+
+RED evidence: initial missing implementation failed; source-root alias rejection exposed canonical-path issue and was fixed; added Host regression initially failed 10/11, then passed 11/11 after production entrypoint Host validation. Independent read-only code review identified DNS-rebinding exposure and stale cross-Session polling hints; fixed exact permitted local Hosts on all four entrypoints plus metadata-only queued revision synchronization. Reviewer rechecked these deltas and found no Important/Critical defect; remaining link-copy issue corrected. Queued Export Resume no longer disappears after a 30-second hint expiry; invalid Import context hides execution controls.
+
+CleanupDependencyTest executed nine isolated source-copy route/API cases with temporary storage and disabled mysqli_init, not actual Apache browser verification. Earlier Export4/4, focused39/39 and historical Import evidence are **reused, not rerun**; historical SQL-snapshot fidelity remains NOT VERIFIED / acceptance PARTIAL. No existing job was reconciled or upgraded.
+
+**NOT VERIFIED:** real saved password + Apache Windows identity/LocalAppData/ACL path; actual live MySQL auto-connect after browser restart; real invalid credentials/server outage; real cross-browser HTTP polling; browser rendering with the new form. No live Export/Import/download acceptance rerun. Offline implementation PASS; overall live end-to-end acceptance PARTIAL pending entry of the existing reader password in Settings and separately scoped live verification.
+
+Safety: no MySQL connection or schema access (including protected/unauthorized databases), no account/GRANT/password reset, no Export/Import, no existing SQL/manifest/job/history/config rewrite or deletion. No Windows account/service/policy/Laragon configuration changes; only the owned synthetic private test directories/ACL described above. No commit/push/tag/release.
+
 ## 2026-10-19 — Final architecture documentation and authorized Git synchronization
 
 This round documents/publishes the completed local working tree; it does not reimplement or re-test the unchanged Export/Import engines. Added root AGENTS.md and docs/ARCHITECTURE.md (20 implemented-architecture sections,3 Mermaid diagrams), expanded README installation/configuration/operation/maintenance and linked retained guides. Documents explicitly distinguish native completion, normal schema/count comparison, separate historical exact live-source values and NOT VERIFIED SQL-snapshot fidelity. Manifestless legacy download compatibility, plaintext private sessions/temporary option files, pinned local identity and concurrent DDL/process-crash limits are not hidden.

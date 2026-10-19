@@ -9,15 +9,33 @@ $runtimeInfo = is_array($runtimeInfo ?? null) ? $runtimeInfo : [];
 ?>
 <div class="settings-flow">
 <section class="editorial-section settings-connection settings-section" aria-labelledby="connection-settings-title">
-    <div class="section-heading"><div><span class="panel-kicker">Database</span><h2 id="connection-settings-title">การเชื่อมต่อฐานข้อมูล</h2></div><span class="status-pill" data-state="<?= !empty($isConnected) ? 'succeeded' : 'neutral' ?>"><?= !empty($isConnected) ? 'connected' : 'not connected' ?></span></div>
-    <dl class="definition-list">
-        <div><dt>Host</dt><dd><?= Security::e((string) ($connectionData['host'] ?? '127.0.0.1')) ?></dd></div>
-        <div><dt>Port</dt><dd><?= Security::e((string) ($connectionData['port'] ?? 3306)) ?></dd></div>
-        <div><dt>Username</dt><dd><?= Security::e((string) ($connectionData['username'] ?? 'backup_reader')) ?></dd></div>
-        <div><dt>Password</dt><dd>ไม่แสดงผล</dd></div>
-    </dl>
-    <a class="secondary-action" href="index.php?page=backup">จัดการ Connection</a>
-    <p>รหัส MySQL แยกจากเว็บไซต์ซึ่งไม่ต้อง Login บน localhost หากไม่มีรหัสบัญชีที่จำกัดสิทธิ์ ให้ติดต่อผู้ดูแล ระบบไม่รีเซ็ตรหัสผ่าน สร้างบัญชี หรือเพิ่ม GRANT อัตโนมัติ</p>
+    <div class="section-heading"><div><span class="panel-kicker">Database</span><h2 id="connection-settings-title">การเชื่อมต่อฐานข้อมูล</h2></div><span class="status-pill" data-state="<?= !empty($isConnected) ? 'succeeded' : 'neutral' ?>"><?= !empty($isConnected) ? 'Connected' : 'Disconnected' ?></span></div>
+    <p><?= Security::e((string) ($connectionStatus['error'] ?? '')) ?></p>
+    <?php if (!empty($connectionStatus['checked_at'])): ?><p>ตรวจจริงล่าสุด: <?= Security::e($connectionStatus['checked_at']) ?></p><?php endif; ?>
+    <form method="post" action="index.php?page=settings" autocomplete="off">
+        <input type="hidden" name="csrf_token" value="<?= Security::e((string) $csrfToken) ?>">
+        <input type="hidden" name="settings_revision" value="<?= Security::e((string) ($connectionData['revision'] ?? '')) ?>">
+        <div class="form-grid">
+            <div class="field"><label for="connection-host">Host / IP</label><input id="connection-host" name="host" type="text" value="<?= Security::e((string) ($connectionData['host'] ?? '127.0.0.1')) ?>" required></div>
+            <div class="field"><label for="connection-port">Port</label><input id="connection-port" name="port" type="number" min="1" max="65535" value="<?= Security::e((string) ($connectionData['port'] ?? 3306)) ?>" required></div>
+        </div>
+        <div class="field"><label for="connection-username">Username</label><input id="connection-username" name="username" type="text" value="<?= Security::e((string) ($connectionData['username'] ?? 'root')) ?>" autocomplete="username" required></div>
+        <details><summary>เปลี่ยนรหัสผ่าน / Change password</summary>
+            <div class="field"><label for="connection-password">Password</label><input id="connection-password" name="password" type="password" autocomplete="new-password" maxlength="4096" aria-describedby="connection-password-help">
+                <small id="connection-password-help"><?= empty($connectionData['profile_saved']) ? 'ยังไม่มีโปรไฟล์ — กด Test/Save อย่างชัดเจนก่อนใช้ รหัสว่างได้' : (!empty($connectionData['password_saved']) ? 'มีรหัสบันทึกไว้ — เว้นว่างเพื่อคงเดิม' : 'มีโปรไฟล์รหัสว่างบันทึกไว้แล้ว') ?> ไม่แสดงรหัสเดิมและไม่ Reset อัตโนมัติ</small>
+            </div>
+            <label><input name="clear_password" type="checkbox" value="1"> ล้างรหัสเดิมและใช้รหัสว่างอย่างชัดเจน (ไม่แก้รหัสบัญชีบน MySQL)</label>
+        </details>
+        <label><input type="checkbox" name="replace_password" value="1">แทนรหัสเดิมด้วยค่าที่กรอก (รวมรหัสว่าง)</label>
+        <label><input type="checkbox" name="confirm_identity_change" value="1">ยืนยันเปลี่ยน Server/บัญชี งานเดิมที่รอจะใช้ต่อไม่ได้</label>
+        <p>เฉพาะ MySQL ในเครื่องนี้ ไม่รับ remote หรือ port 3333 ค่าเริ่มต้นไม่ถูกนำไปเชื่อมต่อจนกด Test/Save Import ใช้โปรไฟล์เดียวกันและตรวจสิทธิ์บนฐานใหม่ก่อนเริ่ม</p>
+        <div class="action-footer start-actions">
+            <button class="secondary-action" type="submit" name="action" value="test_connection_settings">Test Connection</button>
+            <button class="primary-action" type="submit" name="action" value="save_connection_settings">Save Settings</button>
+            <a class="text-action" href="index.php?page=backup">ไปที่ Export</a>
+        </div>
+    </form>
+    <p>รหัส MySQL แยกจากรหัสผ่านเว็บไซต์ซึ่งไม่ต้อง Login บน localhost เก็บเป็น plaintext เฉพาะ private server-side directory นอก Web Root ภายใต้ NTFS ACL ไม่ใช่ encrypted vault ระบบไม่รีเซ็ตรหัสผ่าน ไม่สร้างบัญชีหรือเพิ่ม GRANT อัตโนมัติ</p>
 </section>
 
 <section class="editorial-section settings-storage settings-section" aria-labelledby="storage-settings-title">
@@ -32,7 +50,7 @@ $runtimeInfo = is_array($runtimeInfo ?? null) ? $runtimeInfo : [];
         <div class="field">
             <label for="backup-path">Absolute path ภายใต้ Allowlist</label>
             <input id="backup-path" name="backup_path" type="text" value="<?= Security::e((string) ($activeBackupPath ?? '')) ?>" required>
-            <small>เพิ่ม root ภายนอกผ่าน <code>config/local.php</code> ก่อนเลือกใช้งาน</small>
+            <small>เลือกได้เฉพาะ Allowlist ที่ derive จาก runtime_data_root/backups เดิม</small>
         </div>
         <div class="action-footer start-actions">
             <button class="primary-action" type="submit" name="action" value="set_backup_path">บันทึกตำแหน่ง</button>

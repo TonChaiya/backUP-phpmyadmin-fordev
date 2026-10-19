@@ -5,38 +5,23 @@ declare(strict_types=1);
 use BackupApp\Support\Security;
 
 $connectionData = is_array($connectionData ?? null) ? $connectionData : [];
-$databases = is_array($databases ?? null) ? $databases : [];
+$databases = !empty($isConnected) && is_array($databases ?? null) ? $databases : [];
+$databases=(new \BackupApp\Database\AuthorizedSourcePolicy())->filterAuthorized($databases);
 ?>
 <div class="workflow-sequence">
     <section class="editorial-section backup-connection" aria-labelledby="backup-connection-title">
         <div class="section-heading">
             <div><span class="panel-kicker">Connection</span><h2 id="backup-connection-title">เชื่อมต่อฐานข้อมูล</h2></div>
-            <span class="panel-badge"><?= !empty($isConnected) ? 'Connected' : 'MySQL' ?></span>
+            <span class="panel-badge"><?= !empty($isConnected) ? 'Connected' : 'Disconnected' ?></span>
         </div>
-        <form class="section-form" method="post" action="index.php?page=backup" autocomplete="off">
-            <p>ใช้บัญชี backup_reader ที่จำกัดสิทธิ์เฉพาะฐานที่อนุญาต รหัส MySQL ไม่ใช่รหัสผ่านเว็บไซต์ หากไม่มีรหัสให้ติดต่อผู้ดูแล ไม่ใช้ root แทนและไม่รีเซ็ตรหัสอัตโนมัติ</p>
-            <input type="hidden" name="csrf_token" value="<?= Security::e((string) $csrfToken) ?>">
-            <div class="form-grid">
-                <div class="field">
-                    <label for="host">Host / IP</label>
-                    <input id="host" name="host" type="text" value="<?= Security::e((string) ($connectionData['host'] ?? '127.0.0.1')) ?>" required>
-                </div>
-                <div class="field">
-                    <label for="port">Port</label>
-                    <input id="port" name="port" type="number" min="1" max="65535" value="<?= Security::e((string) ($connectionData['port'] ?? 3306)) ?>" required>
-                </div>
-            </div>
-            <div class="field">
-                <label for="db-username">Username</label>
-                <input id="db-username" name="username" type="text" value="<?= Security::e((string) ($connectionData['username'] ?? 'backup_reader')) ?>" autocomplete="username" required>
-            </div>
-            <div class="field">
-                <label for="db-password">Password</label>
-                <input id="db-password" name="password" type="password" autocomplete="current-password">
-                <?php if (!empty($isConnected)): ?><small>ใช้รายการฐานด้านล่างได้โดยไม่ต้องส่งฟอร์มเชื่อมต่อใหม่ รหัสอยู่เฉพาะ Server Session หากเชื่อมต่อใหม่ต้องกรอกรหัสอีกครั้ง</small><?php endif; ?>
-            </div>
-            <button class="primary-action" type="submit" name="action" value="connect">ทดสอบและดึงรายการฐานข้อมูล</button>
-        </form>
+        <p><?= Security::e((string) ($connectionData['host'] ?? '127.0.0.1')) ?>:<?= Security::e((string) ($connectionData['port'] ?? 3306)) ?> · <?= Security::e((string) ($connectionData['username'] ?? 'root')) ?></p>
+        <?php if (!empty($isConnected)): ?>
+            <p>MySQL <?= Security::e((string) ($connectionStatus['server']['version'] ?? '')) ?> · ตรวจจริงล่าสุด <?= Security::e((string) ($connectionStatus['checked_at'] ?? '')) ?></p>
+        <?php else: ?>
+            <p class="flash warning"><?= Security::e((string) ($connectionStatus['error'] ?? 'Disconnected')) ?></p>
+            <button type="button" class="primary-action" disabled>Export ไม่พร้อม</button>
+        <?php endif; ?>
+        <a class="secondary-action" href="index.php?page=settings">ไปที่ Settings เพื่อแก้ไขการเชื่อมต่อ</a>
     </section>
 
     <section class="editorial-section backup-selection" aria-labelledby="backup-selection-title">
@@ -45,13 +30,14 @@ $databases = is_array($databases ?? null) ? $databases : [];
             <span class="panel-badge"><?= Security::e((string) count($databases)) ?> ฐาน</span>
         </div>
         <form class="section-form" id="backup-job-form" method="post" action="job.php" autocomplete="off">
+            <p>รายชื่อจากสิทธิ์บัญชีใน Settings เลือกหนึ่งฐาน หลายฐาน หรือทั้งหมดที่ Export ได้ โดยไม่รวมฐานที่ป้องกันและ System schemas</p>
             <div class="dialog-notice" data-export-scope>
                 <p>MySQL 8.4 mysqldump: รองรับโครงสร้าง InnoDB base table และแถวข้อมูล ในรูปแบบ SQL ของ official MySQL utility เท่านั้น ไม่ใช่ Full database backup</p>
                 <p>ไม่รวม Views, Triggers, Stored procedures/functions, Events และ Non-InnoDB engines — ไม่รองรับการ Export วัตถุเหล่านี้ หลีกเลี่ยงการเปลี่ยนโครงสร้างตารางระหว่างสำรอง</p>
             </div>
             <input type="hidden" name="csrf_token" value="<?= Security::e((string) $csrfToken) ?>">
             <?php if ($databases === []): ?>
-                <div class="empty-state"><strong>ยังไม่มีรายการฐานข้อมูล</strong><span>เชื่อมต่อก่อนเริ่ม Manual Backup</span></div>
+                <div class="empty-state"><strong>ยังไม่มีรายการฐานข้อมูล</strong><span>ไปที่ Settings เพื่อบันทึกและทดสอบ Connection ก่อนเริ่ม Export</span></div>
             <?php else: ?>
                 <div class="selection-toolbar">
                     <div class="field search-field">
@@ -79,6 +65,14 @@ $databases = is_array($databases ?? null) ? $databases : [];
                 <noscript><div class="flash warning">หน้าสถานะงานสำรองต้องใช้ JavaScript และจะไม่สร้างงานโดยอัตโนมัติ</div></noscript>
             <?php endif; ?>
         </form>
+        <?php if(!empty($isConnected)&&!empty($systemDatabases)): ?>
+            <h3>System schemas — แสดงแยก ไม่อนุญาต Export/Import</h3>
+            <p><?= Security::e(implode(', ',array_filter($systemDatabases,static fn($name)=>is_string($name)&&(new \BackupApp\Database\AuthorizedSourcePolicy())->isSystem($name)))) ?></p>
+        <?php endif; ?>
+        <?php if(!empty($isConnected)&&!empty($unsupportedDatabases)): ?>
+            <h3>ชื่อฐานที่ยังไม่รองรับการจัดเก็บไฟล์บน Windows</h3>
+            <ul><?php foreach($unsupportedDatabases as $name): ?><?php if(is_string($name)&&!(new \BackupApp\Database\AuthorizedSourcePolicy())->isProtected($name)): ?><li><?= Security::e($name) ?></li><?php endif; ?><?php endforeach; ?></ul>
+        <?php endif; ?>
     </section>
 </div>
 

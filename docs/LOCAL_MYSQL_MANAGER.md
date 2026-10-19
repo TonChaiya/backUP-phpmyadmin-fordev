@@ -14,10 +14,10 @@ One official Export engine and one official Import client. Interfaces support fo
 
 ## Credentials, server and sources
 
-Only local Laragon MySQL 8.4.3 at 127.0.0.1:3306; pinned server UUID, product version and binary hashes enforced by existing command/policy classes. No port3333/remote fallback.
-Exact sources: autoprintdb, drugmap_db, drug_stock_check, prepack_labels. jhcisdb is prohibited.
+Local Laragon MySQL 8.4.3, default127.0.0.1:3306. Settings accepts loopback endpoints only, never port3333. Native client hashes/version remain pinned; server UUID/CURRENT_USER bind to the explicitly saved profile. Endpoint/identity edits need confirmation.
+Sources follow account-visible schema discovery, not the former four-schema test scope. SQL catalog excludes jhcisdb before returning results; it is always prohibited. System schemas are displayed separately and are not Export/Import eligible. Select All uses only currently eligible visible names; Windows-unsafe names are displayed as unsupported.
 
-Export uses backup_reader@localhost with exact SELECT-only grants. Import uses a new exact per-run account with only SELECT/INSERT/CREATE/REFERENCES on its new exact target, no source/global destructive/routine/trigger/event/GRANT OPTION privileges. Active roles, partial_revokes semantics and escaped grant names must match the existing policy.
+Export/Import use the normal account selected in Settings, including deliberately saved root/empty password. Unsaved defaults never connect. Private LocalAppData plaintext JSON has SID/SYSTEM ACL, atomic CAS and no Session password. Blank preserves; explicit Replace/Clear permits empty. Import proves SELECT/INSERT/CREATE/REFERENCES on its generated target; active roles/partial revokes fail closed. Export binds confirmed Session selection, rejects forged job names, rechecks account visibility before table access and enforces selected scope before native argv construction.
 
 No application password/login enables network access. MySQL credentials enter the scoped workflow; no reset/provisioning HTTP action. The CLI provisioning tool defaults to plan-only; executing --apply requires separate exact authorization and fresh collision/identity/grant checks. No administrative credentials enter jobs/logs/manifests. The one-off historical reset tool was removed after its authorized operation; persistent receipts remain untouched.
 
@@ -26,7 +26,7 @@ No application password/login enables network access. MySQL credentials enter th
 Trusted producer contract: pinned official mysqldump version/options/profile, successful application provenance and matching manifest bytes/SHA-256. Only positional source (no --databases/--all-databases), InnoDB structure+rows, no views/routines/triggers/events/non-InnoDB/cross-schema FK. Not a general SQL validator; arbitrary dumps/uploads are not eligible.
 
 Before Import, copy to immutable restricted-ACL private staging and verify streaming hash. mysql.exe uses fixed argv, binary mode, no system command/local infile/reconnect, bounded process output/time and protected temporary credentials; no raw diagnostics to HTTP. The official client handles SQL.
-Execution requires exact ownership journal/server/account/grants, empty new target, CSRF/session ownership, explicit IMPORT confirmation and shared lock. No retry/overwrite or automatic DROP/cleanup. Retain partial targets for authorized investigation.
+Execution requires saved server/account binding, target grant proof, target absence, CSRF/session ownership, IMPORT confirmation and shared lock. Creates the exact new target without IF NOT EXISTS, records ownership before mysql.exe. No account creation/GRANT, retry/overwrite or DROP/cleanup. Legacy jobs cannot be resumed through the new web workflow. Retain partial targets for investigation.
 
 ## Verification and historical evidence
 

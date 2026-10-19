@@ -5,7 +5,7 @@
     const message=root.querySelector('[data-import-message]');let id=root.dataset.activeJob||'', timer;
     const endpoint=root.dataset.api, csrf=root.dataset.csrf;
     const fallback='ไม่สามารถรับผลจากระบบได้ กรุณาตรวจสถานะงานหรือให้ผู้ดูแลตรวจสอบก่อน โดยไม่กด Import ซ้ำ';
-    const stateLabels={awaiting_provisioning:'รอบัญชีและฐานใหม่',running:'กำลังทำงาน',succeeded:'การทำงานตามขั้นตอนเสร็จแล้ว',failed:'งานเดิมไม่ผ่าน',interrupted:'งานถูกขัดจังหวะ'};
+    const stateLabels={awaiting_provisioning:'รอยืนยันฐานใหม่',running:'กำลังทำงาน',succeeded:'การทำงานตามขั้นตอนเสร็จแล้ว',failed:'งานเดิมไม่ผ่าน',interrupted:'งานถูกขัดจังหวะ'};
     const labels={execution:{completed:'Import เสร็จสิ้น',running:'กำลัง Import',not_started:'ยังไม่ได้เริ่ม',failed:'ไม่สำเร็จหรือยังยืนยันการทำงานไม่ได้'},
         schema:{verified:'ผ่านการตรวจ Schema',not_verified:'ยังไม่ยืนยัน Schema'},
         live_data:{verified:'ค่าข้อมูลตรงกับ Live Source ณ เวลาตรวจ',not_verified:'ยังไม่ยืนยันค่าทุกค่ากับ Live Source'},
@@ -19,9 +19,9 @@
         for(const [label,value] of [['Job',job.id],['Source',job.artifact.database],['SQL',job.artifact.relative_path],['Bytes',job.artifact.bytes],['SHA-256',job.artifact.sha256],['New target',job.target],['Import account',job.username+'@localhost']]){
             const row=document.createElement('div'),term=document.createElement('dt'),desc=document.createElement('dd');term.textContent=label;desc.textContent=String(value);row.append(term,desc);details.append(row);
         }
-        execute.hidden=job.status!=='awaiting_provisioning'||!job.provisioning_ready;execute.elements.job_id.value=id;
+        execute.hidden=job.status!=='awaiting_provisioning'||!job.provisioning_ready||job.connection_context_valid===false;execute.elements.job_id.value=id;
         root.querySelector('[data-import-readiness]').textContent=job.status==='awaiting_provisioning'
-            ? (job.provisioning_ready ? (job.source_reader_connected?'บัญชีและ ownership พร้อม กรุณายืนยัน Import':'กรุณาเชื่อม backup_reader ที่หน้า Export ก่อน แล้วกลับมายืนยัน Import'):'ต้องอนุมัติและ provision บัญชี/ฐานตามชื่อที่แสดงก่อน ขณะนี้ยังเริ่ม SQL ไม่ได้')
+            ? (job.provisioning_ready ? 'ยืนยันฐานใหม่ที่แสดง ระบบตรวจโปรไฟล์/สิทธิ์/การชนชื่ออีกครั้งก่อนสร้างและ Import':'งานเก่าแสดงเป็นประวัติเท่านั้น ไม่เริ่มซ้ำด้วยโปรไฟล์ใหม่')
             : 'งานที่เริ่มแล้วจะไม่ลองใหม่อัตโนมัติ ฐานปลายทางถูกเก็บไว้เพื่อตรวจสอบ';
         const p=job.presentation||{};
         message.textContent=p.message||'';
@@ -50,7 +50,7 @@
     });
     execute.addEventListener('submit',async e=>{
         e.preventDefault();const button=execute.querySelector('button');button.disabled=true;message.textContent='กำลังตรวจสิทธิ์และ Import…';
-        const body=new FormData(execute);execute.elements.import_password.value='';
+        const body=new FormData(execute);
         const running=request(body);timer=setTimeout(status,1500);
         let requestError=null;
         try{render(await running);}catch(error){requestError=error;showError(error);}finally{

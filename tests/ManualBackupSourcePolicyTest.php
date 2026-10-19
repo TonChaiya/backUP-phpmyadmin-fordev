@@ -50,18 +50,15 @@ final class ManualBackupCatalogConnection extends mysqli
     }
 }
 
-test('Manual backup source policy exposes only the four approved exact names', static function (): void {
+test('Manual backup source eligibility is generic while protected and system schemas remain denied', static function (): void {
     $policy = new AuthorizedSourcePolicy();
 
-    assertSameValue(
-        ['autoprintdb', 'drugmap_db', 'drug_stock_check', 'prepack_labels'],
-        $policy->authorizedSources()
-    );
+    assertTrueValue($policy->isAuthorized('another_project'));
     assertTrueValue($policy->isAuthorized('autoprintdb'));
     assertFalseValue($policy->isAuthorized('jhcisdb'));
-    assertFalseValue($policy->isAuthorized('AUTOPRINTDB'));
+    assertTrueValue($policy->isAuthorized('AUTOPRINTDB'));
 
-    foreach (['jhcisdb', 'mysql', 'unknown', 'autoprintdb '] as $name) {
+    foreach (['jhcisdb', 'JHCISDB', 'mysql', 'sys', '../escape', 'autoprintdb '] as $name) {
         $failed = false;
         try {
             $policy->assertAuthorized($name);
@@ -72,7 +69,7 @@ test('Manual backup source policy exposes only the four approved exact names', s
     }
 });
 
-test('Database listing queries only explicit approved schema names', static function (): void {
+test('Database listing excludes protected metadata in SQL and rejects an unexpected protected result', static function (): void {
     $connection = new ManualBackupCatalogConnection([
         ['prepack_labels'],
         ['jhcisdb'],
@@ -89,10 +86,8 @@ test('Database listing queries only explicit approved schema names', static func
     assertTrueValue($failed, 'Unexpected catalog row must fail closed');
     assertSameValue(1, count($connection->queries));
     assertNotContainsValue('SHOW DATABASES', strtoupper($connection->queries[0]));
-    foreach ((new AuthorizedSourcePolicy())->authorizedSources() as $name) {
-        assertContainsValue("'{$name}'", $connection->queries[0]);
-    }
-    assertNotContainsValue("'jhcisdb'", strtolower($connection->queries[0]));
+    assertContainsValue("LOWER(SCHEMA_NAME) <> 'jhcisdb'", $connection->queries[0]);
+    assertNotContainsValue("'autoprintdb'", $connection->queries[0]);
 });
 
 test('Manual backup selection rejects a forged known database list', static function (): void {

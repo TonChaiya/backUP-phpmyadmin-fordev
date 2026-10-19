@@ -5,8 +5,6 @@ declare(strict_types=1);
 use BackupApp\Backup\BackupService;
 use BackupApp\Backup\BackupJobAccess;
 use BackupApp\Backup\BackupJobStore;
-use BackupApp\Database\ConnectionFactory;
-use BackupApp\Database\DatabaseRepository;
 use BackupApp\Http\Controller\BackupController;
 use BackupApp\Http\Controller\SettingsController;
 use BackupApp\Http\Router;
@@ -32,7 +30,7 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self'; img-src '
 $logger = new Logger((string) $config['log_path']);
 $auth = new Auth();
 $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-if (!$auth->isAuthorized($remoteAddress)) {
+if (!$auth->isAuthorized($remoteAddress, (string) ($_SERVER['HTTP_HOST'] ?? ''))) {
     http_response_code(403);
     header('Content-Type: text/plain; charset=utf-8');
     echo 'Direct loopback access only.';
@@ -66,21 +64,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pathPolicy = new BackupPathPolicy($config['allowed_backup_roots'], dirname(__DIR__));
         $settingsController = new SettingsController($pathPolicy);
         $activeBackupPath = $settingsController->activePath((string) $config['backup_path']);
-        $backupController = new BackupController(
-            new ConnectionFactory($config),
-            new DatabaseRepository()
-        );
+        $backupController = BackupController::forApplication($config, dirname(__DIR__));
 
         if ($action === 'connect') {
-            $password = isset($_POST['password']) && is_string($_POST['password']) ? $_POST['password'] : '';
-            $port = max(1, min(65535, (int) Request::postString('port', '3306')));
-            $backupController->connect(
-                Request::postString('host', '127.0.0.1'),
-                $port,
-                Request::postString('username', 'backup_reader'),
-                $password
-            );
-            redirectTo('backup');
+            Flash::add('warning', 'จัดการ Connection ที่ Settings เท่านั้น');
+            redirectTo('settings');
+        }
+        if ($action === 'save_connection_settings' || $action === 'test_connection_settings') {
+            if ($action === 'save_connection_settings') {
+                $backupController->save($_POST);
+                Flash::add('success', 'บันทึก Settings แล้ว ระบบจะตรวจการเชื่อมต่อจริงจากค่าที่บันทึก');
+            } else {
+                $result = $backupController->test($_POST);
+                Flash::add($result['connected'] ? 'success' : 'error', $result['connected']
+                    ? 'ทดสอบผ่าน แต่ยังไม่ได้บันทึก Settings' : $result['error']);
+            }
+            redirectTo('settings');
         }
 
         if ($action === 'backup' || $action === 'backup_all') {
@@ -106,10 +105,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirectTo('dashboard');
     } catch (Throwable $exception) {
         $logger->exception($exception, Security::connectionPasswordSecrets($_POST, $_SESSION));
-        Flash::add('error', $action === 'connect'
-            ? 'เชื่อมต่อไม่สำเร็จ: ใช้บัญชี backup_reader ที่ 127.0.0.1:3306 และรหัส MySQL ของบัญชีนี้ หากไม่มีรหัสให้ติดต่อผู้ดูแล ระบบไม่รีเซ็ตหรือเพิ่มสิทธิ์อัตโนมัติ'
+        Flash::add('error', in_array($action, ['connect', 'save_connection_settings', 'test_connection_settings'], true)
+            ? BackupController::errorMessage($exception->getMessage())
             : 'ไม่สามารถดำเนินการได้ กรุณาตรวจสอบการตั้งค่าหรือติดต่อผู้ดูแลระบบ');
-        redirectTo(in_array($action, ['connect', 'backup', 'backup_all'], true) ? 'backup' : 'settings');
+        redirectTo(in_array($action, ['backup', 'backup_all'], true) ? 'backup' : 'settings');
     }
 }
 
@@ -118,10 +117,7 @@ try {
     $settingsController = new SettingsController($pathPolicy);
     $activeBackupPath = $settingsController->activePath((string) $config['backup_path']);
     $backupService = new BackupService($activeBackupPath);
-    $backupController = new BackupController(
-        new ConnectionFactory($config),
-        new DatabaseRepository()
-    );
+    $backupController = BackupController::forApplication($config, dirname(__DIR__));
     $backupFiles = array_slice($backupService->listBackupFiles(), 0, (int) $config['max_backup_files']);
     $backupProvenance = new BackupProvenanceIndex((string) $config['job_path']);
     $restoreArtifacts = new RestoreArtifactValidator(
@@ -170,7 +166,10 @@ try {
 }
 
 $route = Router::resolve(isset($_GET['page']) && is_string($_GET['page']) ? $_GET['page'] : null);
-$databases = $backupController->databases();
+$connectionStatus = in_array($route['name'], ['dashboard', 'backup', 'import', 'settings'], true)
+    ? $backupController->verify()
+    : ['connected' => false, 'databases' => [], 'server' => [], 'error' => '', 'checked_at' => null];
+$databases = $connectionStatus['databases'];
 $downloadAuthorization = new DownloadAuthorization($csrfToken);
 
 foreach ($backupFiles as &$file) {
@@ -183,8 +182,11 @@ unset($file);
 $common = [
     'csrfToken' => $csrfToken,
     'flashMessages' => Flash::pull(),
+    'connectionStatus' => $connectionStatus,
+    'systemDatabases' => $connectionStatus['system_databases'] ?? [],
+    'unsupportedDatabases' => $connectionStatus['unsupported_databases'] ?? [],
 ];
-$connectionData = $backupController->connectionData();
+$connectionData = $backupController->metadata();
 $backupJobAccess = new BackupJobAccess();
 $recentBackupJobs = [];
 
@@ -213,7 +215,7 @@ $pageData = match ($route['name']) {
         'databaseCount' => count($databases),
         'backupCount' => count($backupFiles),
         'latestBackupLabel' => isset($backupFiles[0]) ? date('Y-m-d H:i', (int) $backupFiles[0]['modified']) : 'ยังไม่มี',
-        'isConnected' => isset($_SESSION['connection']),
+        'isConnected' => $connectionStatus['connected'],
         'recentBackupJobs' => $recentBackupJobs,
     ],
     'backup' => [
@@ -222,7 +224,7 @@ $pageData = match ($route['name']) {
         'description' => 'เลือกหนึ่งฐาน หลายฐาน หรือทุกฐาน ระบบจะทำงานตามลำดับทีละฐาน',
         'connectionData' => $connectionData,
         'databases' => $databases,
-        'isConnected' => isset($_SESSION['connection']),
+        'isConnected' => $connectionStatus['connected'],
         'activeJobId' => (new BackupJobAccess())->activeJobId(),
         'pageScript' => 'assets/backup-jobs.js',
     ],
@@ -238,7 +240,7 @@ $pageData = match ($route['name']) {
         'description' => 'กำหนดตำแหน่งจัดเก็บภายใต้ Allowlist ที่ผู้ดูแลระบบอนุญาต',
         'activeBackupPath' => $activeBackupPath,
         'connectionData' => $connectionData,
-        'isConnected' => isset($_SESSION['connection']),
+        'isConnected' => $connectionStatus['connected'],
         'authMode' => 'loopback_only',
         'runtimeInfo' => [
             'php_version' => PHP_VERSION,

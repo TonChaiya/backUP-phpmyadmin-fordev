@@ -49,11 +49,12 @@ const job={id:'fixture-job',status:'failed',target:'generated-target',username:'
     assert(!ui.nodes.get('[data-import-message]').textContent.includes('synthetic-secret'));
     console.log('PASS network exception never prints internal exception details');
     ui=await run({ok:true,job:{...job,status:'awaiting_provisioning',provisioning_ready:true,presentation:{execution:'not_started',verification:'pending',message:''}}},false,{ok:false,message:'กรุณาตรวจรหัสผ่านบัญชีเฉพาะงาน'});
-    ui.nodes.get('[data-import-execute]').elements.import_password.value='synthetic-secret';
     await ui.nodes.get('[data-import-execute]').handlers.submit({preventDefault(){}});
     assert.equal(ui.nodes.get('[data-import-message]').textContent,'กรุณาตรวจรหัสผ่านบัญชีเฉพาะงาน');
-    assert.equal(ui.nodes.get('[data-import-execute]').elements.import_password.value,'');
     assert.deepEqual(ui.requests.map(r=>r.method),['GET','POST','GET']);
-    console.log('PASS rejected execution guidance survives status reconciliation; password field cleared');
-    console.log('Tests: 5, Passed: 5, Failed: 0');
+    console.log('PASS rejected execution guidance survives status reconciliation; no password form is submitted');
+    ui=await run({ok:true,job:{...job,status:'awaiting_provisioning',provisioning_ready:true,connection_context_valid:false}});
+    assert.equal(ui.nodes.get('[data-import-execute]').hidden,true);
+    console.log('PASS changed saved reader context hides execution even when provisioning is ready');
+    console.log('Tests: 6, Passed: 6, Failed: 0');
 })().catch(()=>{console.error('FAIL local Import presentation behavior');process.exitCode=1;});

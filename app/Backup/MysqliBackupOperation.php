@@ -13,6 +13,7 @@ use RuntimeException;
 final class MysqliBackupOperation implements BackupOperation
 {
     private ?mysqli $connection = null;
+    private ?\Closure $connectionCheck;
 
     /** @var array<int, string> */
     private array $availableDatabases = [];
@@ -25,8 +26,10 @@ final class MysqliBackupOperation implements BackupOperation
         private DatabaseRepository $repository,
         private BackupService $backupService,
         private array $connectionData,
-        private array $requestedDatabases
+        private array $requestedDatabases,
+        ?callable $connectionCheck = null
     ) {
+        $this->connectionCheck = $connectionCheck !== null ? \Closure::fromCallable($connectionCheck) : null;
         $policy = new AuthorizedSourcePolicy();
 
         if ($requestedDatabases === []) {
@@ -42,10 +45,12 @@ final class MysqliBackupOperation implements BackupOperation
         }
 
         $this->requestedDatabases = array_values(array_unique($requestedDatabases));
+        $this->connectionData['selected_databases']=$this->requestedDatabases;
     }
 
     public function start(): void
     {
+        if ($this->connectionCheck !== null) { ($this->connectionCheck)(); }
         MysqldumpCommand::assertConnection($this->connectionData);
         $policy = new AuthorizedSourcePolicy();
         foreach ($this->requestedDatabases as $database) {
@@ -58,8 +63,11 @@ final class MysqliBackupOperation implements BackupOperation
             $this->connectionData['username'],
             $this->connectionData['password']
         );
-        MysqldumpCommand::verifyConnection($this->connection);
+        MysqldumpCommand::verifyConnection($this->connection, $this->connectionData);
         $this->availableDatabases = $this->repository->listDatabases($this->connection);
+        foreach($this->requestedDatabases as $database){
+            if(!in_array($database,$this->availableDatabases,true)){throw new RuntimeException('source_not_visible_to_account');}
+        }
     }
 
     public function backup(string $database): array

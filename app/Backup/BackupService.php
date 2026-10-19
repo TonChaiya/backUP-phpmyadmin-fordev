@@ -24,9 +24,10 @@ final class BackupService
     /** @param array<string,mixed> $connectionData @return array<string,mixed> */
     public function backupDatabase(mysqli $connection, string $database, array $connectionData = []): array
     {
-        (new AuthorizedSourcePolicy())->assertAuthorized($database);
+        (new AuthorizedSourcePolicy())->assertSelected($database,$connectionData['selected_databases']??[]);
         MysqldumpCommand::assertConnection($connectionData);
-        $identity = MysqldumpCommand::verifyConnection($connection);
+        $identity = MysqldumpCommand::verifyConnection($connection, $connectionData);
+        (new \BackupApp\Database\DatabaseRepository())->assertVisible($connection,$database);
         $before = $this->tableInventory($connection, $database);
         $folder = $this->backupPath . DIRECTORY_SEPARATOR . $database;
         if (is_link($folder) || (file_exists($folder) && !is_dir($folder))) {

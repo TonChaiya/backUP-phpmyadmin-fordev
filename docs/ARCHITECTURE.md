@@ -24,16 +24,18 @@ flowchart LR
     exportRunner --> runtime["Private runtime artifacts and jobs"]
     importRunner --> runtime
     pages --> runtime
+    pages --> savedReader["Private saved reader settings; real page verification"]
+    savedReader --> server
     download --> runtime
 ```
 
-Connections/clients only start in authorized execution paths, not ordinary metadata-only page rendering. The diagram's server is the pinned local instance; it is not permission for automatic live tests.
+Dashboard/Export/Import/Settings perform a real reader verification when private settings exist. History, static assets and status polling never open MySQL. The diagram's server is the pinned local instance; it is not permission for automatic live tests.
 
 ## 2. Technology and prerequisites
 
 - Windows x64, existing Laragon Apache (current local URL `http://localhost:8081/backUP-phpmyadmin-fordev/`), PHP 8.3 with mysqli/mysqlnd, JSON, sessions, hashing and process functions.
 - Fixed Laragon MySQL **8.4.3** client binaries: `C:/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysqldump.exe` and `C:/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysql.exe`. These are external prerequisites, not repository artifacts.
-- Endpoint `127.0.0.1:3306`, expected native server UUID `198f474e-899b-11f1-903d-f0761cf4041a`; wrong version/hash/UUID/roles/grants/port fail closed.
+- Default endpoint `127.0.0.1:3306`; local loopback only, port3333 rejected. UUID/authenticated account bind to the explicitly saved profile. Client/server version remains8.4.3; active roles are unsupported. Import additionally rejects partial revokes or unproven target grants.
 - Local fixed NTFS private temp outside source root, working hard-link publication on the backup volume, `proc_open` and fixed Windows PowerShell ACL command used by TemporaryMysqlCredentials. No DPAPI helper, .NET build or signing infrastructure is required.
 - PHP views + vanilla JavaScript/CSS; no npm/Composer runtime install. Node.js is only needed for the selected JS fixture check. One retained offline acceptance fixture uses PDO SQLite; not required for the website.
 - Generic MySQL 8.4 compatibility is **not** enough to pass the current exact pins. This code does not promise MariaDB/other-server portability without a separately reviewed change.
@@ -54,7 +56,7 @@ app/
   bootstrap.php
   Backup/       native dump, publication, Export jobs/guards
   Import/       native import, target/artifact policy, jobs/comparison/presentation
-  Database/     source allowlist, mysqli factory/catalog, shared file lock
+  Database/     source eligibility/protection, account-visible catalog, shared lock
   Http/
     Router.php
     Controller/ BackupController.php, SettingsController.php
@@ -115,9 +117,9 @@ Router accepts exactly `dashboard`, `backup` (label Export), `import`, `history`
 2. `Config::load()` loads base config, optionally merges local config recursively; no environment-secret discovery.
 3. `RuntimeDataBootstrap::prepare()` derives/validates paths and creates missing development runtime directories. It must not be invoked against original storage for read-only tooling that promises no writes.
 4. PHP error display is disabled; `configureSession()` selects the application session directory, then `Session::start()` uses Strict SameSite, HttpOnly and HTTPS-only Secure flag.
-5. Entry points enforce `Auth::isAuthorized()` on the direct remote peer only, not forwarded headers. Configured legacy website hashes cannot authorize LAN clients; website login is retired.
+5. Entry points enforce `Auth::isAuthorized()` on the direct remote peer plus Host localhost/127.0.0.1/[::1] (optional valid port), not forwarded headers. This prevents arbitrary DNS Host origins from using automatically loaded credentials. Legacy website hashes cannot authorize LAN clients; website login is retired.
 6. POST/status CSRF gates and session job ownership precede execution; pages resolve through Router and render through `View::render()`, shared layout/navigation. External engine creation alone does not open MySQL.
-7. Database selection and connection details displayed on ordinary pages come from the current Session. Connecting explicitly uses BackupController and verifies the dedicated reader's exact identity/grants.
+7. BackupController loads private saved settings and verifies actual identity/grants/catalog for Dashboard/Export/Import/Settings. Failure clears stale status and database lists. Session contains public metadata, revision, last-check time and ownership only, never reader passwords or mysqli objects. Settings owns the CSRF-protected Test/Save forms; Export has status and a Settings link only.
 
 Bootstrap currently establishes local session/storage **before** peer rejection; localhost-only access does not imply a zero-side-effect unauthenticated health endpoint. Tests that must preserve storage use isolated copies/temp directories.
 
@@ -125,9 +127,10 @@ Bootstrap currently establishes local session/storage **before** peer rejection;
 
 ```mermaid
 flowchart TD
-    selectSources["Select exact authorized sources"] --> createJob["CSRF and session checks; create queued job"]
+    settings["Settings: save private reader; verify real connection"] --> selectSources["Select exact authorized sources"]
+    selectSources --> createJob["CSRF and session checks; create queued job"]
     createJob --> executeJob["Claim job and shared operation lock"]
-    executeJob --> reader["Verify dedicated reader and server"]
+    executeJob --> reader["Verify saved account and server binding"]
     reader --> nextSource["Next selected source, sequential only"]
     nextSource --> inventory["Check visible InnoDB inventory and cross-schema FK"]
     inventory --> reserve["Reserve owned empty SQL temporary file"]
@@ -140,7 +143,7 @@ flowchart TD
     remaining -->|No| finish["Persist aggregate result and release locks"]
 ```
 
-`BackupJobAccess` restricts selections to the exact connected allowlist and binds jobs to a session connection context. Duplicate active jobs/claims are rejected. `BackupJobRunner::run()` takes a per-job nonblocking claim and the shared operation lock (blocking for Export), starts one MysqliBackupOperation and processes sources one at a time. A source failure is safely logged/recorded and the next source is attempted; aggregate fails if any source failed. Startup failure fails remaining sources. Finally closes connections and releases locks.
+`BackupJobAccess` selects from a freshly verified account catalog and binds the exact ordered selection in Session alongside job ownership/connection context. POST cannot add unseen/protected/system schemas. Execute compares persisted names to that immutable Session selection; missing legacy selection proof or tampering rejects before work. MysqliBackupOperation refreshes visibility at start, then permits only requested/visible names. BackupService checks exact visibility again before table metadata; engine/command require selected scope and terminate argv options with --. Duplicate claims are rejected; runner remains sequential with the same locks/status/error/publication behavior. No catalog selection is inferred from a mutable job file alone.
 
 `BackupService::backupDatabase()` checks allowed source, reader/server and visible tables/FK, reserves a random owned `.sql.tmp`, delegates only to MysqldumpEngine, detects visible inventory drift and builds manifest. `MysqldumpEngine::dump()` validates binary path/hash/version, runs the fixed profile and requires empty stderr, native header/completion. It appends the app completion marker; PHP does not build INSERT statements.
 
@@ -152,10 +155,9 @@ Profile: single transaction, quick streaming, skip table locks, no tablespaces, 
 flowchart TD
     artifact["Choose trusted application SQL artifact"] --> prepare["Verify provenance, manifest, full hash and completion"]
     prepare --> pending["Create session-owned awaiting_provisioning job"]
-    pending --> provision["Separately authorized CLI provisioning of exact new names"]
-    provision --> confirm["Ownership proof; reader session; password; IMPORT confirmation"]
+    pending --> confirm["Saved profile and IMPORT confirmation for exact new target"]
     confirm --> claim["Claim job and same shared operation lock"]
-    claim --> recheck["Reverify artifact; mark running; verify accounts and empty owned target"]
+    claim --> recheck["Verify artifact, profile, privileges, absence; CREATE target and journal ownership"]
     recheck --> before["Read allowed source schema and row-count snapshot"]
     before --> staging["Stream hash-verified copy into restricted private staging"]
     staging --> nativeImport["Pinned mysql.exe reads staging via STDIN"]
@@ -164,11 +166,11 @@ flowchart TD
     result --> display["Separate execution, schema, live data, snapshot data and verification"]
 ```
 
-`ImportArtifactVerifier::inspect()` performs bounded manifest/provenance/file-size checks; `verify()` adds full SHA-256/completion check. The browser cannot supply host/port/target/account. `ImportPolicy::names()` generates a cryptographic32-hex job ID, date-bound new target and per-run account. Preparing records no SQL execution.
+`ImportArtifactVerifier::inspect()` performs bounded manifest/provenance/file-size checks; `verify()` adds full SHA-256/completion. Native producer/options/provenance establish supported unqualified table/row SQL, not arbitrary SQL validation. Historical connection options are accepted only after endpoint/account syntax validation and exact semantic-profile matching. Preparation binds artifact server UUID to the saved profile, records its non-secret host/port/account/UUID and generates a random exact new target. Browser cannot override scope. Preparation creates no database/account.
 
-The external provisioning tool defaults to **plan-only** and receives admin authentication over bounded stdin only after specific authorization. It proves exact target/account absence before creation; records exact creation evidence. It is not invoked by the web app. Future jobs require their own approval; previous target authorization is not reusable.
+The external provisioning tool is retained for historical jobs only, plan-only by default, never called by HTTP. It is not a prerequisite of current saved-profile imports. Old jobs and ownership evidence remain unchanged and cannot execute through the new HTTP workflow.
 
-`ImportRunner::run()` requires awaiting state/ownership, acquires the shared lock nonblocking, verifies immutable artifact binding and persists running before database/client work. `MysqliImportDatabase::start()` verifies exact dedicated target and source reader identities/grants, confirms target exists and has zero tables. It never creates a target. MysqlImportClient verifies binary, stages an immutable SQL copy via streaming hash and invokes mysql.exe for the exact target with binary/batch, disabled system command/local infile/reconnect. Client input is a resource on STDIN, not a shell command.
+`ImportRunner::run()` requires awaiting state, takes claim/shared lock, reverifies artifact and marks running before database work. For saved_profile mode, MysqliImportDatabase verifies saved identity/revision, proves SELECT/INSERT/CREATE/REFERENCES from global or exact escaped target grants (no wildcard inference), checks exact target absent, CREATEs without IF NOT EXISTS and records exact ownership. Only then can runner invoke the native client. No account or GRANT creation. Failure/collision never reuses an existing target; a journal failure stops before import and retains the new target. MysqlImportClient verifies binary, copies hash-verified input into restricted private staging, uses the same saved credentials through a protected option file, exact --database, binary/batch and disabled system/local-infile/reconnect. No string replacement, arbitrary upload or raw SQL endpoint.
 
 Import completion requires exit0, empty stdout/stderr and comparison. Failure after start records a safe code and keeps target/account for investigation; errors before start do not claim SQL ran. No automatic retry, overwrite, cleanup, DROP or failed-to-succeeded reconciliation. A process crash/orphaned claim is observed as interrupted, not replayed.
 
@@ -183,7 +185,9 @@ Import completion requires exit0, empty stdout/stderr and comparison. Failure af
 
 ## 9. Database policy
 
-`AuthorizedSourcePolicy` is the single exact four-source policy: autoprintdb, drugmap_db, drug_stock_check, prepack_labels. It does not discover a broader allowlist. DatabaseRepository only queries those exact names in INFORMATION_SCHEMA, never unrestricted SHOW DATABASES. `jhcisdb` is prohibited regardless of account capability; other unauthorized sources are rejected.
+`AuthorizedSourcePolicy` now classifies eligibility/protected/system names; it is not an account grant attestation. The former four names were controlled-test scope, not a product restriction. DatabaseRepository queries account-visible INFORMATION_SCHEMA.SCHEMATA with LOWER(SCHEMA_NAME) <> 'jhcisdb', never reads protected tables/objects or uses unrestricted SHOW DATABASES. Unexpected protected results fail closed. Catalog returns eligible ordinary schemas, separately displayed system names and separately displayed names unsupported by Windows artifact paths. Visibility is MySQL-account-dependent; full/table privileges and supported object/engine checks still apply when exporting.
+
+System schemas information_schema/performance_schema/mysql/sys are display-only, not exportable/importable, and never in Select All. Names with traversal/separators/control characters, invalid Windows filename characters, reserved device names, trailing dot/space or more than64 codepoints are ineligible; Unicode, spaces and option-like leading hyphens otherwise work (quoted SQL identifiers, native -- separator). Select All uses every currently eligible catalog entry, independent of text-search filtering. A current discovery/selection match plus fresh execution checks are required; structural policy alone never authorizes a source.
 
 Source reads preserve data; normal Import writes only the exact newly owned target. Cross-schema foreign keys are unsupported. No remote endpoint or port3333 fallback. Unknown SQL, old custom profiles and untrusted provenance are ineligible, not rewritten to fit.
 
@@ -191,14 +195,18 @@ Source reads preserve data; normal Import writes only the exact newly owned targ
 
 | Role | Current boundary |
 |---|---|
-| Export reader | backup_reader@localhost; USAGE plus exact SELECT on the four escaped source schemas; no extra privileges |
-| Import runner | generated per-job localhost account; USAGE plus SELECT, INSERT, CREATE, REFERENCES on exactly its escaped new target |
-| Administrator | External explicitly authorized provisioning; not routine website Export/Import and never persisted in app config/jobs |
+| Export profile | Normal saved account, including explicit root/empty; catalog follows account visibility while protected/system and selected-scope gates remain mandatory |
+| Import profile | Same saved account; verified identity and provable SELECT/INSERT/CREATE/REFERENCES on generated new target |
+| Administrator | No automatic user/grant modification; historical provisioning requires separate authorization |
 | Historical inspector | Retained CLI is fixed-scope/read-only and uses interactively supplied admin authentication; it is a separate authorized investigation, not proof that the web runner uses root |
 
-Both actual role checks require expected MySQL version/port/native UUID, CURRENT_USER, CURRENT_ROLE=NONE and partial_revokes=0 with exact grants; extra grants fail. Underscores in grant schema names are escaped under the required semantics.
+Verification binds actual MySQL version/port/UUID/CURRENT_USER to profile and requires CURRENT_ROLE=NONE. Import additionally requires partial_revokes=0 and conservative sufficient-privilege proof; broad ordinary-account grants are allowed but never exempt safety gates. Unproven wildcard/role/revoke combinations fail closed, not automatically GRANTed.
 
-Reader credentials remain server-side in the PHP Session until session clear/destruction; PHP file sessions are **not encrypted secret storage**. The Import password is per-request and cleared from its form. TemporaryMysqlCredentials writes an ephemeral **plaintext** option file only within a random NTFS directory owned by the runtime SID with protected ACL for that SID and SYSTEM, outside source/web root. No password arguments/environment/logs/job JSON/manifest/API responses. A fixed PowerShell command creates/checks ACL; this is not the removed PowerShell DPAPI worker. Cleanup removes only owned temporary files; machine/process crashes may leave private remnants.
+ConnectionSettingsStore stores the reader in `%LOCALAPPDATA%/BackupPhpMyAdmin/ConnectionSettings/<first32 SHA-256 of normalized lowercase canonical project root>/settings.json`. This is bounded **plaintext protected by NTFS ACL, not encryption**. WindowsPrivateDirectory uses a fixed bounded PowerShell command to require owner/runtime SID and protected SID+SYSTEM ACL, local NTFS and no reparse points. Source/web-root overlap, traversal, unexpected files or unverifiable identity fail closed. No fallback to config/local.php or legacy Session secrets. CLI/Apache identities can have different profiles; save under the intended Apache runtime identity. Same-account/admin compromise is outside this model.
+
+Private writes use exclusive lock, revision CAS, create-only temp, flush/fsync and atomic rename; failure preserves old data. No profile differs from saved empty password. Test probes without saving; Save probes and persists actual UUID/account (v2, old v1 records remain readable). Blank preserves an existing password; explicit Replace/Clear accepts empty. Endpoint/UUID/account change requires confirmation. Save takes the shared operation lock; running work retains its private snapshot and both adapters assert current revision before opening MySQL. Queued contexts invalidate across Sessions; polling does no MySQL. Unsaved defaults never connect.
+
+Both clients receive the saved profile through an ephemeral **plaintext** option file including safely validated username/endpoint and escaped password (including empty) under protected runtime-SID/SYSTEM ACL outside source/web root. Passwords never enter arguments/environment/Session/logs/jobs/manifests/API. Cleanup removes only owned temp files; process crashes may leave remnants. Profile metadata is not encrypted/authenticated against the same Windows account controlling PHP/source.
 
 ## 11. Artifact/manifest contract
 
@@ -274,7 +282,7 @@ Logger appends normalized single-line exceptions with LOCK_EX; callers must supp
 
 RuntimeDataBootstrap merges derived paths **after** local config, so independent backup_path/allowed_backup_roots overrides are not supported. Settings selects only validated paths within the derived backup allowlist, storing selection in Session. local.php.example is safe documentation; never commit local.php or database credentials.
 
-Retained production-mode path compatibility accepts only the explicitly approved existing `C:/ProgramData/BackupPhpMyAdmin/RuntimeData` tree with safety validation; it creates no production directory. This is not an approved/current dedicated deployment or a switch to enable automatically. Old auth hashes, if present in a user's local config, do not restore website login. Endpoint/client/hash/UUID/source grants are source policy constants, not freely editable config flags.
+Retained production-mode path compatibility accepts only the approved existing `C:/ProgramData/BackupPhpMyAdmin/RuntimeData` tree; creates no production directory/deployment. Old auth hashes do not restore login. Native binary hashes and protected/system source exclusions remain constants; source discovery uses account visibility, and endpoint/account/bound UUID come from Settings, not PHP config passwords.
 
 ## 17. Important classes
 
@@ -291,8 +299,9 @@ Retained production-mode path compatibility accepts only the explicitly approved
 | Import/MysqlImportClient, MysqliImportDatabase | Official mysql.exe and read-only schema/count snapshots |
 | Import/ImportClient, ImportDatabase | Existing adapter contracts |
 | Import/EffectiveSchemaComparison, ImportResultPresentation | Evidence-based DDL equivalence and honest independent UI status facets |
-| Database/AuthorizedSourcePolicy, DatabaseRepository, ConnectionFactory | Exact source list, scoped catalog, mysqli creation |
+| Database/AuthorizedSourcePolicy, DatabaseRepository, ConnectionFactory | Protected/system/path eligibility, account-visible names and exact visibility recheck, mysqli creation |
 | Database/DatabaseOperationLock, FileDatabaseOperationLock | Shared operation exclusion |
+| Database/ConnectionSettingsStore, Support/WindowsPrivateDirectory | Private SID/ACL-bound plaintext settings, atomic CAS writes and path checks |
 | Http/Router, Controller/BackupController, Controller/SettingsController | Page allowlist, reader connection, validated storage selection |
 | Support/Config, RuntimeDataPaths, RuntimeDataBootstrap | Config merge and centralized runtime paths/session setup |
 | Support/Auth, Session, Security, Request, Flash | Direct-loopback policy, session/CSRF/escaping/input/flash support |

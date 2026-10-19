@@ -13,25 +13,47 @@ use RuntimeException;
 /** Read-only metadata/count verification; SQL import is handled only by mysql.exe. */
 final class MysqliImportDatabase implements ImportDatabase
 {
-    private ?mysqli $source=null;
-    private ?mysqli $target=null;
+    private ?object $source=null;
+    private ?object $target=null;
     private ?string $targetName=null;
-    public function __construct(private readonly array $reader,private readonly string $password){}
+    private ?\Closure $connectionCheck;
+    private ?\Closure $recordOwnership;
+    private \Closure $connect;
+    public function __construct(private readonly array $reader,private readonly string $password='',?callable $connectionCheck=null,?callable $recordOwnership=null,?callable $connect=null)
+    {$this->connectionCheck=$connectionCheck!==null?\Closure::fromCallable($connectionCheck):null;$this->recordOwnership=$recordOwnership!==null?\Closure::fromCallable($recordOwnership):null;
+        $this->connect=$connect!==null?\Closure::fromCallable($connect):(new ConnectionFactory(['connect_timeout_seconds'=>5]))->make(...);}
     public function start(array $job):void
     {
-        ImportPolicy::assertNames($job['target'],$job['username'],$job['id']);
+        if($this->connectionCheck!==null){($this->connectionCheck)();}
+        ImportPolicy::assertJob($job);
         (new AuthorizedSourcePolicy())->assertAuthorized($job['artifact']['database']);
         MysqldumpCommand::assertConnection($this->reader);
-        $factory=new ConnectionFactory(['connect_timeout_seconds'=>5]);
-        $this->target=$factory->make('127.0.0.1',3306,$job['username'],$this->password);
+        if(($job['mode']??'')==='saved_profile'){
+            foreach(['host','port','username','server_uuid','account'] as $key){if(($job[$key]??null)!==($this->reader[$key]??null)){throw new RuntimeException('import_connection_settings_changed');}}
+            if($this->recordOwnership===null){throw new RuntimeException('import_ownership_recorder_required');}
+            $this->target=($this->connect)($this->reader['host'],$this->reader['port'],$this->reader['username'],$this->reader['password']);
+            $identity=MysqldumpCommand::verifyConnection($this->target,$this->reader);
+            if((string)$identity['partial_revokes']!=='0'){throw new RuntimeException('import_privilege_semantics_unsupported');}
+            $grants=[];$r=$this->target->query('SHOW GRANTS FOR CURRENT_USER()');while($row=$r->fetch_row()){$grants[]=$row[0];}
+            ImportPolicy::assertProfileGrants($grants,$job['target']);
+            $escaped=$this->target->real_escape_string($job['target']);
+            if($this->target->query("SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '{$escaped}'")->fetch_row()!==null){throw new RuntimeException('import_target_already_exists');}
+            // No IF NOT EXISTS: a concurrent external creator must cause failure, never reuse.
+            $this->target->query('CREATE DATABASE `'.$job['target'].'` CHARACTER SET utf8mb4');
+            ($this->recordOwnership)($job['id'],['id'=>$job['id'],'target'=>$job['target'],'username'=>$job['username'],'server_uuid'=>$identity['server_uuid'],'created_new'=>true,'account_created_new'=>false,'created_at'=>gmdate('c')]);
+            $this->targetName=$job['target'];
+            $this->source=($this->connect)($this->reader['host'],$this->reader['port'],$this->reader['username'],$this->reader['password']);
+            MysqldumpCommand::verifyConnection($this->source,$this->reader);return;
+        }
+        $this->target=($this->connect)('127.0.0.1',3306,$job['username'],$this->password);
         ImportPolicy::verifyConnection($this->target,$job);
         $this->targetName=$job['target'];$escaped=$this->target->real_escape_string($this->targetName);
         $schemas=$this->target->query("SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '{$escaped}'");
         if($schemas->num_rows!==1){throw new RuntimeException('import_owned_target_missing');}
         $tables=$this->target->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{$escaped}'");
         if($tables->num_rows!==0){throw new RuntimeException('import_target_not_empty');}
-        $this->source=$factory->make('127.0.0.1',3306,'backup_reader',(string)$this->reader['password']);
-        MysqldumpCommand::verifyConnection($this->source);
+        $this->source=($this->connect)($this->reader['host'],$this->reader['port'],$this->reader['username'],(string)$this->reader['password']);
+        MysqldumpCommand::verifyConnection($this->source,$this->reader);
     }
     public function sourceSnapshot(string $source):array
     {

@@ -31,7 +31,7 @@ final class ImportArtifactVerifier
     {
         $parts=explode('/',str_replace('\\','/',$relative));
         if(count($parts)!==2||strlen($relative)>512||$relative!==implode('/',$parts)
-            ||preg_match('/^[A-Za-z0-9_.-]+\.sql$/D',$parts[1])!==1||str_contains($parts[1],'..')){throw new RuntimeException('import_artifact_path_invalid');}
+            ||preg_match('/^[^\x00-\x1f\x7f\/\\\\:*?"<>|]+\.sql$/uD',$parts[1])!==1||str_contains($parts[1],'..')){throw new RuntimeException('import_artifact_path_invalid');}
         (new AuthorizedSourcePolicy())->assertAuthorized($parts[0]);
         $sql=(new BackupService($this->root))->resolveBackupPath($relative);
         $path=realpath($sql.'.json');$root=realpath($this->root);
@@ -44,7 +44,7 @@ final class ImportArtifactVerifier
             ||($m['engine']['name']??'')!=='mysqldump'||($m['engine']['profile']??'')!==MysqldumpCommand::PROFILE
             ||($m['engine']['version']??'')!==MysqldumpCommand::VERSION
             ||($m['engine']['binary_sha256']??'')!==MysqldumpCommand::SHA256
-            ||($m['engine']['options']??[])!==MysqldumpCommand::OPTIONS||($m['engine']['exit_code']??null)!==0
+            ||!$this->supportedOptions($m['engine']['options']??[])||($m['engine']['exit_code']??null)!==0
             ||!is_int($m['bytes']??null)||$m['bytes']<=0||$m['bytes']>17_179_869_184
             ||!is_string($m['sha256']??null)||preg_match('/^[a-f0-9]{64}$/D',$m['sha256'])!==1){
             throw new RuntimeException('import_unsupported_or_untrusted_dump');
@@ -55,7 +55,20 @@ final class ImportArtifactVerifier
             ||!hash_equals((string)($origin['sha256']??''),$m['sha256'])||filesize($sql)!==$m['bytes']){
             throw new RuntimeException('import_artifact_origin_mismatch');
         }
-        return ['database'=>$m['database'],'relative_path'=>$relative,'bytes'=>$m['bytes'],'sha256'=>$m['sha256']];
+        return ['database'=>$m['database'],'relative_path'=>$relative,'bytes'=>$m['bytes'],'sha256'=>$m['sha256'],'server_uuid'=>$m['server']['server_uuid']];
+    }
+    private function supportedOptions(array $options):bool
+    {
+        // Historical manifests included connection flags; producer profile and native binary/hash remain required.
+        $profile=[];$seen=[];
+        foreach($options as $option){
+            if(!is_string($option)){return false;}
+            if(preg_match('/^--(host|port|user)=(.+)$/D',$option,$m)===1){
+                if(isset($seen[$m[1]])){return false;}$seen[$m[1]]=$m[2];continue;
+            }$profile[]=$option;
+        }
+        if($seen!==[]){try{MysqldumpCommand::assertConnection(['host'=>$seen['host']??'','port'=>(int)($seen['port']??0),'username'=>$seen['user']??'']);}catch(RuntimeException){return false;}}
+        return $profile===MysqldumpCommand::OPTIONS;
     }
     /** @return array<string,mixed> */
     public function verify(string $relative):array

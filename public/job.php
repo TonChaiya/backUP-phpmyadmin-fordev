@@ -13,6 +13,7 @@ use BackupApp\Backup\MysqliBackupOperation;
 use BackupApp\Database\ConnectionFactory;
 use BackupApp\Database\DatabaseRepository;
 use BackupApp\Http\Controller\SettingsController;
+use BackupApp\Http\Controller\BackupController;
 use BackupApp\Support\Auth;
 use BackupApp\Support\BackupPathPolicy;
 use BackupApp\Support\Logger;
@@ -48,7 +49,7 @@ try {
     $auth = new Auth();
     $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
 
-    if (!$auth->isAuthorized($remoteAddress)) {
+    if (!$auth->isAuthorized($remoteAddress, (string) ($_SERVER['HTTP_HOST'] ?? ''))) {
         jobJson(['ok' => false, 'error' => 'ไม่อนุญาตให้เข้าถึง'], 403);
     }
 
@@ -72,7 +73,21 @@ try {
 
         $jobId = is_string($_GET['job_id'] ?? null) ? trim($_GET['job_id']) : '';
         $access->assertOwned($jobId);
-        jobJson(['ok' => true, 'job' => $access->publicView($runner->recoverInterrupted($jobId))]);
+        $view = $access->publicView($runner->recoverInterrupted($jobId));
+        if ($view['can_execute']) {
+            try {
+                // Metadata only: no MySQL probe on polling. Execution revalidates under the lock.
+                $connections = BackupController::forApplication($config, dirname(__DIR__));
+                $connections->credentials();
+                if (!$access->matchesCurrentConnection($jobId)) {
+                    $view = $access->publicView($runner->interruptQueued($jobId, 'connection_changed', 'การเชื่อมต่อเปลี่ยน กรุณาสร้างงานใหม่จาก Settings'));
+                    $view['can_execute'] = false;
+                } else {
+                    $access->assertSelection($jobId,array_column($view['databases'],'name'));
+                }
+            } catch (Throwable) { $view['can_execute'] = false; }
+        }
+        jobJson(['ok' => true, 'job' => $view]);
     }
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -85,11 +100,15 @@ try {
         jobJson(['ok' => false, 'error' => 'คำขอหมดอายุหรือไม่ถูกต้อง'], 419);
     }
 
+    if ($action === 'create' || $action === 'execute') {
+        $connections = BackupController::forApplication($config, dirname(__DIR__));
+        $connections->synchronize();
+    }
     if ($action === 'create') {
-        $known = is_array($_SESSION['databases'] ?? null) ? array_values($_SESSION['databases']) : [];
-
-        if (!is_array($_SESSION['connection'] ?? null)) {
-            jobJson(['ok' => false, 'error' => 'กรุณาเชื่อมต่อฐานข้อมูลก่อน'], 409);
+        $status = $connections->verify();
+        $known = $status['databases'];
+        if (!$status['connected']) {
+            jobJson(['ok' => false, 'error' => $status['error']], 409);
         }
 
         if ($access->currentConnectionContext() === null) {
@@ -121,7 +140,7 @@ try {
         }
 
         $job = $store->create($selected);
-        $access->register($job['id']);
+        $access->register($job['id'],$selected);
         jobJson(['ok' => true, 'job' => $access->publicView($job)], 201);
     }
 
@@ -141,32 +160,31 @@ try {
             throw new BackupJobRequestException('connection ของงานนี้เปลี่ยนไป กรุณาสร้างงานใหม่', 409);
         }
 
-        $connection = $_SESSION['connection'] ?? null;
+        $connection = $connections->credentials();
 
         if (!is_array($connection)) {
             jobJson(['ok' => false, 'error' => 'ไม่พบข้อมูลการเชื่อมต่อ'], 409);
         }
 
-        $connectionData = [
-            'host' => (string) ($connection['host'] ?? ''),
-            'port' => (int) ($connection['port'] ?? 3306),
-            'username' => (string) ($connection['username'] ?? ''),
-            'password' => (string) ($connection['password'] ?? ''),
-        ];
+        $connectionData = $connection; // Preserve saved UUID and authenticated account through execution.
         $executionJob = $store->read($jobId);
         $requestedDatabases = array_values(array_map(
             static fn (array $database): string => (string) ($database['name'] ?? ''),
             is_array($executionJob['databases'] ?? null) ? $executionJob['databases'] : []
         ));
+        $access->assertSelection($jobId,$requestedDatabases);
+        $connectionData['selected_databases']=$requestedDatabases;
         $secrets = array_values(array_filter([$connectionData['password']], static fn (string $value): bool => $value !== ''));
         $pathPolicy = new BackupPathPolicy($config['allowed_backup_roots'], dirname(__DIR__));
         $activeBackupPath = (new SettingsController($pathPolicy))->activePath((string) $config['backup_path']);
+        $connectionsRevision = $connections->revision();
         $operation = new MysqliBackupOperation(
             new ConnectionFactory($config),
             new DatabaseRepository(),
             new BackupService($activeBackupPath),
             $connectionData,
-            $requestedDatabases
+            $requestedDatabases,
+            fn() => $connections->assertRevision($connectionsRevision)
         );
 
         session_write_close();
@@ -180,6 +198,9 @@ try {
 } catch (BackupJobRequestException $exception) {
     jobJson(['ok' => false, 'error' => $exception->getMessage()], $exception->httpStatus());
 } catch (Throwable $exception) {
+    if (str_starts_with($exception->getMessage(), 'connection_')) {
+        jobJson(['ok' => false, 'error' => BackupController::errorMessage($exception->getMessage())], 409);
+    }
     $logger->exception($exception, $secrets);
     jobJson(['ok' => false, 'error' => 'ไม่สามารถดำเนินการงานสำรองได้'], 500);
 }

@@ -60,16 +60,16 @@ test('Local presentation loads only bounded exact job review files and supplies 
             $message=BackupApp\Import\ImportResultPresentation::message($code);assertNotContainsValue('synthetic-secret',$message);assertNotContainsValue('traceback',$message);assertNotContainsValue('SQLSTATE',$message);
         }
         assertContainsValue('รหัสผ่าน',BackupApp\Import\ImportResultPresentation::message('import_credential_required'));
-        assertContainsValue('Export',BackupApp\Import\ImportResultPresentation::message('import_connect_export_reader_first'));
+        assertContainsValue('Settings',BackupApp\Import\ImportResultPresentation::message('import_connect_export_reader_first'));
     }finally{phase2RemoveDirectory($root);}
 });
 
 test('Local presentation views expose distinct verification scopes and actionable credential boundaries',static function():void {
     $common=['csrfToken'=>'token','pageTitle'=>'Import','heading'=>'Import'];
     $html=BackupApp\Support\View::render('import',$common+['importArtifacts'=>[]],'import',['app_name'=>'Local manager']);
-    foreach(['data-import-execution','data-import-schema','data-import-live-data','data-import-snapshot-data','data-import-verification','Snapshot','ไม่เขียนทับ','รหัสผ่านเว็บไซต์'] as $needle){assertContainsValue($needle,$html);}
+    foreach(['data-import-execution','data-import-schema','data-import-live-data','data-import-snapshot-data','data-import-verification','Snapshot','ไม่ใช้ฐานเดิม','page=settings'] as $needle){assertContainsValue($needle,$html);}
     $html=BackupApp\Support\View::render('backup',$common+['databases'=>[],'connectionData'=>[]],'backup',['app_name'=>'Local manager']);
-    foreach(['InnoDB','base table','Views','Triggers','Stored procedures/functions','Events','Non-InnoDB','รหัสผ่านเว็บไซต์'] as $needle){assertContainsValue($needle,$html);}
+    foreach(['InnoDB','base table','Views','Triggers','Stored procedures/functions','Events','Non-InnoDB','page=settings'] as $needle){assertContainsValue($needle,$html);}
     $html=BackupApp\Support\View::render('settings',$common,'settings',['app_name'=>'Local manager']);
     assertContainsValue('ไม่รีเซ็ตรหัสผ่าน',$html);
     $html=BackupApp\Support\View::render('history',$common+['backupFiles'=>[]],'history',['app_name'=>'Local manager']);

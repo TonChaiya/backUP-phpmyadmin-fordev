@@ -14,7 +14,7 @@ $logger = new Logger((string) $config['log_path']);
 $auth = new Auth();
 $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
 
-if (!$auth->isAuthorized($remoteAddress)) {
+if (!$auth->isAuthorized($remoteAddress, (string) ($_SERVER['HTTP_HOST'] ?? ''))) {
     http_response_code(403);
     header('Content-Type: text/plain; charset=utf-8');
     header('Cache-Control: no-store, private');

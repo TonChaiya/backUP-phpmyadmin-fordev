@@ -11,22 +11,20 @@ final class TemporaryMysqlCredentials
 {
     private ?string $directory = null;
 
-    public static function optionFile(string $password, string $username = 'backup_reader'): string
+    public static function optionFile(string $password, string $username = 'root', string $host = '127.0.0.1', int $port = 3306): string
     {
-        if ($username !== 'backup_reader' && preg_match('/^local_import_[a-f0-9]{16}$/D', $username) !== 1) {
-            throw new RuntimeException('mysql_credential_role_invalid');
-        }
-        if (str_contains($password, "\0") || strlen($password) > 4096 || $password === '') {
+        MysqldumpCommand::assertConnection(compact('host','port','username'));
+        if (str_contains($password, "\0") || strlen($password) > 4096) {
             throw new RuntimeException('mysqldump_credential_invalid');
         }
         $escaped = strtr($password, ["\\" => "\\\\", '"' => '\\"', "\n" => '\\n', "\r" => '\\r', "\t" => '\\t']);
-        return "[client]\nuser={$username}\npassword=\"{$escaped}\"\n";
+        return "[client]\nuser={$username}\npassword=\"{$escaped}\"\nhost={$host}\nport={$port}\n";
     }
 
-    public function create(string $password, string $username = 'backup_reader'): string
+    public function create(string $password, string $username = 'root', string $host = '127.0.0.1', int $port = 3306): string
     {
         if ($this->directory !== null) { throw new RuntimeException('mysqldump_credential_already_open'); }
-        $payload = self::optionFile($password, $username);
+        $payload = self::optionFile($password, $username, $host, $port);
         if (PHP_OS_FAMILY !== 'Windows') { throw new RuntimeException('mysqldump_private_storage_requires_windows'); }
         $root = realpath(sys_get_temp_dir());
         $source = realpath(dirname(__DIR__, 2));

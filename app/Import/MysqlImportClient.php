@@ -16,13 +16,14 @@ final class MysqlImportClient implements ImportClient
         '--default-character-set=utf8mb4','--binary-mode','--batch','--skip-system-command',
         '--local-infile=0','--skip-reconnect','--connect-timeout=5'];
 
-    public function __construct(private readonly MysqldumpProcess $process=new MysqldumpProcess()){}
+    public function __construct(private readonly MysqldumpProcess $process=new MysqldumpProcess(),private readonly ?array $profile=null){}
     /** @param array<string,mixed> $job @return list<string> */
     public static function command(array $job,string $credentials):array
     {
-        ImportPolicy::assertNames($job['target'],$job['username'],$job['id']);
+        ImportPolicy::assertJob($job);
         if($credentials===''||preg_match('/[\x00-\x1f]/',$credentials)===1){throw new RuntimeException('import_credential_path_invalid');}
-        return [self::BINARY,'--defaults-file='.$credentials,...self::OPTIONS,
+        $options=self::OPTIONS;if(($job['mode']??'')==='saved_profile'){$options=array_values(array_filter($options,static fn(string $s):bool=>!str_starts_with($s,'--host=')&&!str_starts_with($s,'--port=')));}
+        return [self::BINARY,'--defaults-file='.$credentials,...$options,
             '--user='.$job['username'],'--database='.$job['target']];
     }
     public static function verifyBinary():void
@@ -37,10 +38,14 @@ final class MysqlImportClient implements ImportClient
     }
     public function execute(array $job,ImportArtifactVerifier $artifacts,string $password):array
     {
-        ImportPolicy::assertNames($job['target'],$job['username'],$job['id']);self::verifyBinary();
+        ImportPolicy::assertJob($job);self::verifyBinary();
+        if(($job['mode']??'')==='saved_profile'){
+            foreach(['host','port','username','server_uuid','account'] as $key){if(($this->profile[$key]??null)!==($job[$key]??null)){throw new RuntimeException('import_connection_settings_changed');}}
+            $password=$this->profile['password'];
+        }
         $storage=new TemporaryMysqlCredentials();$input=null;$out=null;$err=null;
         try{
-            $options=$storage->create($password,$job['username']);
+            $options=$storage->create($password,$job['username'],$this->profile['host']??'127.0.0.1',$this->profile['port']??3306);
             $sql=$storage->stagingPath('input.sql');$artifacts->copyVerified($job['artifact'],$sql);
             $input=@fopen($sql,'rb');$out=@fopen($storage->stagingPath('stdout'),'xb+');$err=@fopen($storage->stderrPath(),'xb+');
             if($input===false||$out===false||$err===false){throw new RuntimeException('import_process_storage_failed');}

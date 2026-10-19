@@ -13,7 +13,7 @@ final class MysqldumpEngine implements DumpEngine
 
     public function dump(string $database, array $connection, string $temporarySql): array
     {
-        (new AuthorizedSourcePolicy())->assertAuthorized($database);
+        (new AuthorizedSourcePolicy())->assertSelected($database,$connection['selected_databases']??[]);
         MysqldumpCommand::assertConnection($connection);
         $command = new MysqldumpCommand();
         $command->verifyBinary();
@@ -24,11 +24,11 @@ final class MysqldumpEngine implements DumpEngine
             if (!is_file($temporarySql) || is_link($temporarySql) || filesize($temporarySql) !== 0) {
                 throw new RuntimeException('mysqldump_output_not_reserved_empty');
             }
-            $file = $credentials->create((string) ($connection['password'] ?? ''));
+            $file = $credentials->create((string) ($connection['password'] ?? ''), $connection['username'], $connection['host'], $connection['port']);
             $out = @fopen($temporarySql, 'r+b');
             $err = @fopen($credentials->stderrPath(), 'xb+');
             if ($out === false || $err === false) { throw new RuntimeException('mysqldump_output_create_failed'); }
-            $exit = $this->process->run($command->arguments($database, $file), $out, $err);
+            $exit = $this->process->run($command->arguments($database, $file, $connection['selected_databases']), $out, $err);
             if ($exit !== 0) { throw new RuntimeException('mysqldump_exit_' . $exit); }
             if ((fstat($err)['size'] ?? 0) !== 0) { throw new RuntimeException('mysqldump_diagnostic_output'); }
             $size = fstat($out)['size'] ?? 0;

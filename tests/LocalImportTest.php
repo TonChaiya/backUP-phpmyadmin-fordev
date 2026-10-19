@@ -50,11 +50,12 @@ test('Local import job persists generated scope and never stores credentials',st
     }finally{phase2RemoveDirectory($dir);}
 });
 
-test('Local import credential options reject root and support only generated import accounts',static function():void{
+test('Local import credential options support ordinary accounts and reject option injection',static function():void{
     $user='local_import_'.str_repeat('a',16);
     $file=\BackupApp\Backup\TemporaryMysqlCredentials::optionFile('synthetic-secret',$user);
     assertContainsValue('user='.$user,$file);
-    foreach(['root','restore_runner',"local_import_aaaaaaaaaaaaaaaa\npassword=evil"] as $bad){
+    assertContainsValue('user=root',\BackupApp\Backup\TemporaryMysqlCredentials::optionFile('','root'));
+    foreach(['--option',"local_import_aaaaaaaaaaaaaaaa\npassword=evil"] as $bad){
         try{\BackupApp\Backup\TemporaryMysqlCredentials::optionFile('synthetic-secret',$bad);throw new LogicException('arbitrary credential role accepted');}catch(RuntimeException){}
     }
 });

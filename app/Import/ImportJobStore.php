@@ -22,13 +22,15 @@ final class ImportJobStore
         return $this->root.DIRECTORY_SEPARATOR.$id.'.jsonl';
     }
     /** @param array<string,mixed> $artifact @return array<string,mixed> */
-    public function create(array $artifact):array
+    public function create(array $artifact,?array $profile=null):array
     {
         (new AuthorizedSourcePolicy())->assertAuthorized((string)($artifact['database']??''));
         $names=ImportPolicy::names();
+        if($profile!==null){MysqldumpCommand::assertConnection($profile);if(($artifact['server_uuid']??null)!==($profile['server_uuid']??null)){throw new RuntimeException('import_artifact_server_mismatch');}$names['username']=$profile['username'];}
         $job=$names+['status'=>'awaiting_provisioning','created_at'=>gmdate('c'),'started_at'=>null,'finished_at'=>null,
-            'artifact'=>array_intersect_key($artifact,array_flip(['database','relative_path','sha256','bytes'])),
+            'artifact'=>array_intersect_key($artifact,array_flip(['database','relative_path','sha256','bytes','server_uuid'])),
             'error'=>null,'events'=>[['at'=>gmdate('c'),'code'=>'artifact_verified_target_generated']],'verification'=>null];
+        if($profile!==null){$job+=['mode'=>'saved_profile','host'=>$profile['host'],'port'=>$profile['port'],'server_uuid'=>$profile['server_uuid'],'account'=>$profile['account']];}
         $h=@fopen($this->path($job['id']),'xb');if($h===false){throw new RuntimeException('import_job_collision');}
         try{$this->append($h,$job);}finally{fclose($h);}return $job;
     }
@@ -37,7 +39,7 @@ final class ImportJobStore
     {
         $h=@fopen($this->path($id),'rb');if($h===false){throw new RuntimeException('import_job_missing');}
         try{if(!flock($h,LOCK_SH)){throw new RuntimeException('import_job_busy');}$job=$this->last($h);}finally{fclose($h);}
-        ImportPolicy::assertNames((string)($job['target']??''),(string)($job['username']??''),$id);
+        if(($job['id']??null)!==$id){throw new RuntimeException('import_job_invalid');}ImportPolicy::assertJob($job);
         return $job;
     }
     /** @param array<string,mixed> $changes @return array<string,mixed> */
@@ -47,7 +49,7 @@ final class ImportJobStore
         $h=@fopen($this->path($id),'r+b');if($h===false){throw new RuntimeException('import_job_missing');}
         try{
             if(!flock($h,LOCK_EX)){throw new RuntimeException('import_job_busy');}
-            $job=$this->last($h);ImportPolicy::assertNames($job['target'],$job['username'],$id);
+            $job=$this->last($h);ImportPolicy::assertJob($job);
             $job=array_replace($job,$changes);fseek($h,0,SEEK_END);$this->append($h,$job);return $job;
         }finally{fclose($h);}
     }
@@ -90,8 +92,9 @@ final class ImportJobStore
     private function assertOwnership(array $job,array $record):void
     {
         foreach(['id','target','username'] as $key){if(($record[$key]??null)!==$job[$key]){throw new RuntimeException('import_ownership_mismatch');}}
-        if(($record['server_uuid']??'')!==MysqldumpCommand::SERVER_UUID||($record['created_new']??null)!==true
-            ||($record['account_created_new']??null)!==true||!is_string($record['created_at']??null)){
+        $profile=($job['mode']??'')==='saved_profile';
+        if(($record['server_uuid']??'')!==($profile?$job['server_uuid']:MysqldumpCommand::SERVER_UUID)||($record['created_new']??null)!==true
+            ||(!$profile&&($record['account_created_new']??null)!==true)||($profile&&($record['account_created_new']??null)!==false)||!is_string($record['created_at']??null)){
             throw new RuntimeException('import_ownership_unproven');
         }
     }

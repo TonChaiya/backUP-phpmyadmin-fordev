@@ -19,13 +19,14 @@ final class ImportRunner
         try{
             $job=$this->store->read($id);
             if($job['status']!=='awaiting_provisioning'){throw new RuntimeException('import_already_attempted_no_retry');}
-            $this->store->requireOwnership($job);
+            $profile=($job['mode']??'')==='saved_profile';
+            if(!$profile){$this->store->requireOwnership($job);}
             $global=$this->lock->acquire('import-'.$id,false);
             if($global===null){throw new RuntimeException('import_database_operation_busy');}
             $artifact=$this->artifacts->verify($job['artifact']['relative_path']);
             if($artifact!==$job['artifact']){throw new RuntimeException('import_artifact_changed');}
             $started=true;$job=$this->store->update($id,['status'=>'running','started_at'=>gmdate('c')]);
-            $database->start($job);$before=$database->sourceSnapshot($artifact['database']);
+            $database->start($job);$this->store->requireOwnership($job);$before=$database->sourceSnapshot($artifact['database']);
             $result=$client->execute($job,$this->artifacts,$password);
             if(($result['exit_code']??-1)!==0){throw new RuntimeException('mysql_import_nonzero_exit');}
             $target=$database->targetSnapshot($job['target']);$after=$database->sourceSnapshot($artifact['database']);

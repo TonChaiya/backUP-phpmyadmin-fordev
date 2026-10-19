@@ -19,18 +19,19 @@ final class DumpFixtureResult extends mysqli_result
 final class DumpFixtureConnection extends mysqli
 {
     public array $queries=[];
-    public function __construct(public string $engine='InnoDB', public string $type='BASE TABLE') {}
+    public function __construct(public string $engine='InnoDB', public string $type='BASE TABLE',public string $database='autoprintdb') {}
     public function real_escape_string(string $string): string { return addslashes($string); }
     public function query(string $query,int $result_mode=MYSQLI_STORE_RESULT): mysqli_result|bool
     {
         $this->queries[]=$query;
+        if(str_contains($query,'information_schema.SCHEMATA')){return new DumpFixtureResult([['SCHEMA_NAME'=>$this->database]]);}
         if(str_starts_with($query,'SHOW GRANTS')) {
-            $rows=[['grant'=>'GRANT USAGE ON *.* TO `backup_reader`@`localhost`']];
-            foreach(['autoprintdb','drugmap\\_db','drug\\_stock\\_check','prepack\\_labels'] as $name){$rows[]=['grant'=>'GRANT SELECT ON `'.$name.'`.* TO `backup_reader`@`localhost`'];}
+            $rows=[['grant'=>'GRANT USAGE ON *.* TO `fixture_user`@`localhost`']];
+            foreach(['autoprintdb','drugmap\\_db','drug\\_stock\\_check','prepack\\_labels'] as $name){$rows[]=['grant'=>'GRANT SELECT ON `'.$name.'`.* TO `fixture_user`@`localhost`'];}
             return new DumpFixtureResult($rows);
         }
         if(str_contains($query,'CURRENT_USER')) { return new DumpFixtureResult([[
-            'account'=>'backup_reader@localhost','roles'=>'NONE','version'=>'8.4.3','port'=>3306,'server_uuid'=>MysqldumpCommand::SERVER_UUID,'partial_revokes'=>'0',
+            'account'=>'fixture_user@localhost','roles'=>'NONE','version'=>'8.4.3','port'=>3306,'server_uuid'=>MysqldumpCommand::SERVER_UUID,'partial_revokes'=>'0',
         ]]); }
         if(str_contains($query,'information_schema.TABLES')) {return new DumpFixtureResult([['TABLE_NAME'=>'items','TABLE_TYPE'=>$this->type,'ENGINE'=>$this->engine]]);}
         if(str_contains($query,'KEY_COLUMN_USAGE')) {return new DumpFixtureResult([['cross_schema'=>0]]);}
@@ -51,7 +52,7 @@ final class DumpFixtureEngine implements DumpEngine
     }
 }
 
-function dumpFixtureCredentials(): array {return ['host'=>'127.0.0.1','port'=>3306,'username'=>'backup_reader','password'=>'synthetic-secret'];}
+function dumpFixtureCredentials(): array {return ['host'=>'127.0.0.1','port'=>3306,'username'=>'fixture_user','password'=>'synthetic-secret','selected_databases'=>['autoprintdb']];}
 
 test('Mysqldump service publishes exact hash and table-only scope without privileged queries',static function():void{
     $dir=phase2TempDirectory('dump-service'); $engine=new DumpFixtureEngine(); $db=new DumpFixtureConnection();
@@ -173,7 +174,7 @@ test('Mysqldump service artifacts persist through the unchanged sequential runne
         $operation=new class($service) implements \BackupApp\Backup\BackupOperation {
             public function __construct(private BackupService $service){}
             public function start():void{}
-            public function backup(string $database):array{return $this->service->backupDatabase(new DumpFixtureConnection(),$database,dumpFixtureCredentials());}
+            public function backup(string $database):array{return $this->service->backupDatabase(new DumpFixtureConnection(database:$database),$database,array_replace(dumpFixtureCredentials(),['selected_databases'=>['autoprintdb','drugmap_db']]));}
             public function finish():void{}
         };
         mkdir($dir.'/backups');

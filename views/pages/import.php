@@ -15,19 +15,18 @@ $importArtifacts=is_array($importArtifacts??null)?$importArtifacts:[];
             <?php foreach($importArtifacts as $artifact): ?><option value="<?= Security::e($artifact['relative_path']) ?>"<?= ($selectedImportArtifact??'')===$artifact['relative_path']?' selected':'' ?>><?= Security::e($artifact['database'].' · '.$artifact['relative_path'].' · '.$artifact['bytes'].' bytes') ?></option><?php endforeach; ?>
         </select></div>
         <?php if($importArtifacts===[]): ?><p class="empty-state">ยังไม่มีไฟล์ที่รองรับ <a href="index.php?page=backup">ไปหน้า Export เพื่อสร้าง Backup</a> ด้วย mysqldump ก่อน</p><?php endif; ?>
-        <button class="primary-action" type="submit"<?= $importArtifacts===[]?' disabled':'' ?>>ตรวจไฟล์และเตรียมฐานใหม่</button>
+        <button class="primary-action" type="submit"<?= $importArtifacts===[]||empty($isConnected)?' disabled':'' ?>>ตรวจไฟล์และเตรียมงานฐานใหม่</button>
     </form>
 </section>
 <section class="editorial-section" aria-labelledby="import-confirm-title">
     <div class="section-heading"><h2 id="import-confirm-title">ฐานปลายทางและการยืนยัน</h2><strong class="job-state" data-import-state>ยังไม่ได้เตรียมงาน</strong></div>
-    <p>ชื่อฐานใหม่สร้างโดยระบบ ไม่เขียนทับฐานเดิม ต้องใช้บัญชี Import ที่มีสิทธิ์เฉพาะฐานนี้ ไม่ใช้ backup_reader หรือ root สำหรับ Import และจะไม่ลบฐานปลายทางอัตโนมัติ</p>
-    <p>รหัส MySQL ไม่ใช่รหัสผ่านเว็บไซต์ เว็บนี้ไม่ต้อง Login จาก localhost หากไม่มีรหัสบัญชีเฉพาะงาน ให้ติดต่อผู้ดูแล ระบบไม่สร้างบัญชี เพิ่มสิทธิ์ หรือรีเซ็ตรหัสผ่านให้เอง</p>
+    <p>ใช้โปรไฟล์ MySQL จาก Settings สร้างเฉพาะฐานใหม่ตามชื่อที่แสดงหลังพิมพ์ IMPORT ยืนยัน ไม่ใช้ฐานเดิม ไม่สร้างบัญชี/เพิ่มสิทธิ์ และไม่ลบฐานอัตโนมัติ</p>
+    <?php if(empty($isConnected)): ?><p class="empty-state">Disconnected — <a href="index.php?page=settings">ไปที่ Settings เพื่อตรวจการเชื่อมต่อ</a></p><?php endif; ?>
     <dl class="definition-list" data-import-details></dl>
-    <p data-import-readiness>เตรียมงานเพื่อดูชื่อฐานและบัญชีที่ต้องอนุมัติ provisioning ก่อนใช้งานจริง</p>
+    <p data-import-readiness>เตรียมงานเพื่อดูฐานใหม่ แล้วตรวจและยืนยันก่อน Import</p>
     <form data-import-execute action="import-job.php" method="post" class="section-form" hidden autocomplete="off">
         <input type="hidden" name="csrf_token" value="<?= Security::e((string)$csrfToken) ?>">
         <input type="hidden" name="action" value="execute"><input type="hidden" name="job_id" value="">
-        <div class="field"><label for="import-password">รหัสผ่านบัญชี Import เฉพาะงานนี้</label><input id="import-password" name="import_password" type="password" autocomplete="off" required></div>
         <div class="field"><label for="import-confirmation">พิมพ์ IMPORT เพื่อยืนยันฐานใหม่ที่แสดงด้านบน</label><input id="import-confirmation" name="confirmation" pattern="IMPORT" required autocomplete="off"></div>
         <button type="submit" class="primary-action">ยืนยันและ Import</button>
     </form>

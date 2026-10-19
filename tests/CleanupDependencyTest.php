@@ -54,7 +54,7 @@ test('Cleanup active entrypoints render isolated routes without MySQL or project
             ['job.php','',405,'ไม่รองรับคำขอนี้'],['import-job.php','',419,'csrf_invalid'],['download.php','',404,'Backup file is not available.']];
         foreach($cases as [$entry,$page,$expected,$marker]){
             // Disabling mysqli_init makes any accidental DB factory call fail, never connect.
-            $script='$_SERVER["REQUEST_METHOD"]="GET";$_SERVER["REMOTE_ADDR"]="127.0.0.1";$_GET["page"]='.var_export($page,true).';'
+            $script='$_SERVER["REQUEST_METHOD"]="GET";$_SERVER["REMOTE_ADDR"]="127.0.0.1";$_SERVER["HTTP_HOST"]="localhost";$_GET["page"]='.var_export($page,true).';'
                 .'register_shutdown_function(static function(){fwrite(STDERR,"STATUS:".http_response_code());});require '.var_export($fixture.'/public/'.$entry,true).';';
             $process=proc_open([PHP_BINARY,'-d','disable_functions=mysqli_init','-r',$script],[1=>['pipe','w'],2=>['pipe','w']],$pipes,$fixture);
             assertTrueValue(is_resource($process));$html=stream_get_contents($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);

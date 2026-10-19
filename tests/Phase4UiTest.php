@@ -147,7 +147,7 @@ test('Phase4Ui backup renders searchable selection count and explicit confirmati
     assertContainsValue('editorial-section backup-connection', $html);
     assertContainsValue('editorial-section backup-selection', $html);
     assertContainsValue('editorial-section backup-job-status', $html);
-    assertContainsValue('action="index.php?page=backup"', $html);
+    assertContainsValue('href="index.php?page=settings"', $html);
     assertContainsValue('action="job.php"', $html);
     assertContainsValue('data-backup-jobs', $html);
     assertNotContainsValue('class="panel"', $html);

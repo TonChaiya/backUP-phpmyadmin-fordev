@@ -5,17 +5,17 @@ declare(strict_types=1);
 use BackupApp\Import\ImportArtifactVerifier;
 use BackupApp\Backup\MysqldumpCommand;
 
-function localImportFixture(string $root):array
+function localImportFixture(string $root,string $database='autoprintdb'):array
 {
-    mkdir($root.'/backups');mkdir($root.'/backups/autoprintdb');
-    $relative='autoprintdb/fixture.sql';
-    $sql="-- MySQL dump 10.13 Distrib 8.4.3\n-- Host: 127.0.0.1    Database: autoprintdb\nCREATE TABLE t(id int);\n-- Dump completed on 2026-10-19\n-- Backup completed successfully\n";
+    mkdir($root.'/backups');mkdir($root.'/backups/'.$database);
+    $relative=$database.'/fixture.sql';
+    $sql="-- MySQL dump 10.13 Distrib 8.4.3\n-- Host: 127.0.0.1    Database: {$database}\nCREATE TABLE t(id int);\n-- Dump completed on 2026-10-19\n-- Backup completed successfully\n";
     file_put_contents($root.'/backups/'.$relative,$sql);
-    $manifest=['database'=>'autoprintdb','filename'=>'fixture.sql','relative_path'=>$relative,'bytes'=>strlen($sql),'sha256'=>hash('sha256',$sql),'complete'=>true,'scope'=>'innodb_tables_structure_and_data','full_database_objects'=>false,
+    $manifest=['database'=>$database,'filename'=>'fixture.sql','relative_path'=>$relative,'bytes'=>strlen($sql),'sha256'=>hash('sha256',$sql),'complete'=>true,'scope'=>'innodb_tables_structure_and_data','full_database_objects'=>false,
         'engine'=>['name'=>'mysqldump','version'=>'8.4.3','binary_sha256'=>MysqldumpCommand::SHA256,'profile'=>MysqldumpCommand::PROFILE,'options'=>MysqldumpCommand::OPTIONS,'exit_code'=>0],
-        'server'=>['server_uuid'=>MysqldumpCommand::SERVER_UUID,'account'=>'backup_reader@localhost','version'=>'8.4.3','port'=>3306,'roles'=>'NONE','partial_revokes'=>'0']];
+        'server'=>['server_uuid'=>MysqldumpCommand::SERVER_UUID,'account'=>'fixture_user@localhost','version'=>'8.4.3','port'=>3306,'roles'=>'NONE','partial_revokes'=>'0']];
     file_put_contents($root.'/backups/'.$relative.'.json',json_encode($manifest));
-    $store=new \BackupApp\Backup\BackupJobStore($root.'/jobs');$job=$store->create(['autoprintdb']);
+    $store=new \BackupApp\Backup\BackupJobStore($root.'/jobs');$job=$store->create([$database]);
     $store->update($job['id'],static function(array $state)use($manifest):array{
         $state['status']='succeeded';$state['databases'][0]['status']='succeeded';$state['databases'][0]['artifact']=$manifest;return $state;
     });

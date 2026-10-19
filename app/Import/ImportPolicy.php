@@ -10,6 +10,28 @@ use RuntimeException;
 
 final class ImportPolicy
 {
+    public static function assertJob(array $job):void
+    {
+        if(($job['mode']??'')!=='saved_profile'){self::assertNames($job['target'],$job['username'],$job['id']);return;}
+        $id=$job['id']??'';
+        if(!is_string($id)||preg_match('/^[a-f0-9]{32}$/D',$id)!==1||preg_match('/^local_import_[0-9]{8}_'.substr($id,0,16).'$/D',(string)($job['target']??''))!==1){throw new RuntimeException('import_target_scope_invalid');}
+        MysqldumpCommand::assertConnection(['host'=>$job['host']??'127.0.0.1','port'=>$job['port']??3306,'username'=>$job['username']??'']);
+    }
+
+    /** Conservative proof: global or exactly escaped new-target grants; roles/partial revokes are rejected upstream. */
+    public static function assertProfileGrants(array $grants,string $target):void
+    {
+        if(preg_match('/^local_import_[0-9]{8}_[a-f0-9]{16}$/D',$target)!==1){throw new RuntimeException('import_target_scope_invalid');}
+        $needed=['SELECT','INSERT','CREATE','REFERENCES'];$found=[];$schema='`'.str_replace('_','\\_',$target).'`.*';
+        foreach($grants as $grant){
+            if(!is_string($grant)||preg_match('/^GRANT (.+) ON (.+) TO `[^`]+`@`[^`]+`(?: WITH GRANT OPTION)?$/D',$grant,$m)!==1){continue;}
+            if($m[2]!=='*.*'&&$m[2]!==$schema){continue;}
+            $privileges=explode(', ',$m[1]);
+            if(in_array('ALL PRIVILEGES',$privileges,true)){return;}
+            $found=array_merge($found,$privileges);
+        }
+        if(array_diff($needed,$found)!==[]){throw new RuntimeException('import_insufficient_target_privileges');}
+    }
     /** @return array{id:string,target:string,username:string} */
     public static function names(): array
     {
