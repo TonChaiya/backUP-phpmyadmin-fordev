@@ -4,6 +4,8 @@
 
 Maintain the existing localhost-only PHP MySQL Export/Import application on Laragon. Read [README.md](README.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/LOCAL_USER_GUIDE.md](docs/LOCAL_USER_GUIDE.md) and the latest [TEST_BASELINE.md](TEST_BASELINE.md) entry before changes. The current working tree, including uncommitted work, is authoritative; do not restore retired systems from Git history.
 
+Current documented scope is **v1.0**, not a tag/release or universal MySQL certification. Historical Import remains PARTIAL (snapshot fidelity NOT VERIFIED); the accidental test target remains OWNERSHIP UNPROVEN. Do not infer ownership from a prefix or upgrade historical states.
+
 ## Stack and active boundaries
 
 - PHP 8.3 on Windows/Laragon Apache; existing vanilla JavaScript/CSS/PHP views, no frontend framework or Composer build required.
@@ -17,6 +19,8 @@ Maintain the existing localhost-only PHP MySQL Export/Import application on Lara
 ## Development rules
 
 Reuse existing implementations and naming; trace callers before deletion. Prefer the smallest maintainable change. Keep existing UI/data attributes/API URLs coherent. Do not add a custom SQL serializer/parser/executor, duplicate route/workflow, scheduler, framework/container, DPAPI/.NET helper, signing/deployment system or Windows service. Removed architectures are historical, not unfinished features.
+
+The Import page must receive the verified `isConnected` flag from its route, not infer it from artifact presence or saved settings alone. Preparation is disabled when disconnected; execution stays hidden until a valid prepared job and explicit IMPORT confirmation. `LocalImportUiTest` covers the actual route/rendering with a fake external connection boundary and isolated runtime, including connected/disconnected states. Keep evidence facets independent; never call row counts snapshot-value proof.
 
 ## Database and data safety
 

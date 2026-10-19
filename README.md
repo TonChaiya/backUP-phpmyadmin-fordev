@@ -1,8 +1,18 @@
-# Local MySQL Export / Import Manager
+# Local MySQL Export / Import Manager v1.0
 
 เว็บ PHP สำหรับ Export/Import MySQL ผ่าน **Laragon บนเครื่องเดียว** ใช้ official `mysqldump.exe` และ `mysql.exe` ไม่ใช่ Custom SQL Engine ไม่มี Application Login หรือ Windows service เพิ่ม
 
 [คู่มือใช้งาน](docs/LOCAL_USER_GUIDE.md) · [Architecture](docs/ARCHITECTURE.md) · [แนวทางสำหรับ AI/ผู้พัฒนา](AGENTS.md) · [ผลทดสอบ](TEST_BASELINE.md) · [ข้อจำกัด Import](docs/LOCAL_IMPORT_ACCEPTANCE_2026-10-19.md)
+
+## v1.0 readiness — 2026-10-19
+
+Version label นี้เป็นขอบเขต Source/เอกสาร ไม่ใช่ Git tag หรือ Release: ใช้บนเครื่อง Laragon ที่ตรวจแล้ว (Apache 2.4.66, PHP 8.3.30, MySQL/official clients 8.4.3) ไม่รับรอง MySQL/MariaDB รุ่นอื่นหรือเครื่องอื่นโดยอัตโนมัติ
+
+Export และการเชื่อมต่อ/discovery มีหลักฐาน Live เดิม; Import มี client exit0, effective schema9/9 และ live-source values9/9 แต่ **overall historical Import acceptance ยังคง PARTIAL: backup snapshot-value fidelity NOT VERIFIED** ไม่ใช่ Full Backup/Restore verification ประวัติ failed เดิมคงเดิม
+
+หน้า Import ใช้สถานะการเชื่อมต่อจริงจาก Settings เพื่อเปิด/ปิดการเตรียมงาน; การเตรียมงานไม่สร้างฐาน ส่วน execution ต้องยืนยัน IMPORT และผ่าน new-target/identity/privilege gates เดิม ไม่เริ่มงานเพียงเปิดหน้า
+
+ข้อจำกัดคงค้าง: บัญชี Windows/runtime หรือ admin ที่ถูกยึดอาจอ่าน plaintext credentials ได้; concurrent DDL ไม่ถูก freeze; ฐานว่างจาก test incident เดิมยัง **OWNERSHIP UNPROVEN** จึงไม่ระบุชื่อจากการเดาหรือลบฐาน ข้อมูลเก่าใน Git history ไม่ถูก rewrite ดู TEST_BASELINE สำหรับหลักฐานและขอบเขตจริง
 
 ## ฟังก์ชันปัจจุบัน
 

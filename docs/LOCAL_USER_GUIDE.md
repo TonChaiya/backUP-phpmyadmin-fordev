@@ -1,4 +1,4 @@
-# คู่มือใช้งาน Local MySQL Export / Import
+# คู่มือใช้งาน Local MySQL Export / Import v1.0
 
 สำหรับผู้พัฒนา: [Architecture](ARCHITECTURE.md) และ [AGENTS.md](../AGENTS.md) อธิบายโค้ดและขอบเขตความปลอดภัยปัจจุบัน
 
@@ -18,6 +18,8 @@
 โปรไฟล์เก็บ plaintext ใน private LocalAppData ของ Windows account ที่รัน PHP นอก Web Root ด้วย ACL เฉพาะ SID นั้นและ SYSTEM ไม่ใช่ encrypted vault รหัสไม่อยู่ใน Session/Job/Manifest/Logs เปลี่ยน Windows account หรือย้าย project path จะไม่แชร์ค่าเดิม ห้าม Copy ไป source/config เมื่อเปลี่ยนค่า queued context เก่าใช้ต่อไม่ได้ ส่วนงานกำลังรันห้าม Save จนปล่อย shared lock Export/Import ใช้โปรไฟล์เดียวกัน ไม่มีช่องรหัส Import แยก
 
 ## Import
+
+หน้า Import ตรวจการเชื่อมต่อจาก Settings จริงเมื่อเปิดหน้า หาก Disconnected จะปิดปุ่มเตรียมงาน แม้มีไฟล์ SQL อยู่ หาก Connected และมีไฟล์ที่รองรับ ปุ่มจะพร้อมใช้งาน แต่ **ไม่เริ่ม Import อัตโนมัติ** การเตรียมงานเพียงให้ตรวจ Source/Target ก่อนยืนยัน ไม่มีการสร้างฐานในขั้นนี้
 
 1. เลือก Backup ที่ระบบรองรับจากหน้า Import หรือกด Import ใน History ตรวจ Source, ชื่อ SQL, ขนาด และ SHA-256
 2. กดตรวจไฟล์และเตรียมงาน จะสร้างเฉพาะชื่อ Target ใหม่ ยังไม่สร้างฐานจริง และไม่สร้างบัญชี
@@ -56,3 +58,5 @@ Export ใช้ `job.php` → mysqldump; Import ใช้ `import-job.php` → 
 Restore/Restore Lab และ API เก่าถูกลบแล้ว ใช้ Import เท่านั้น Custom Restore/DPAPI/.NET/Signing/Dedicated Apache source และ tooling ที่เลิกใช้ถูก Cleanup; หลักฐานเดิมใน TEST_BASELINE และรายงาน Import ยังเก็บไว้ ไม่มีการลบ SQL/Manifest/History หรือสร้างแพ็กเกจใหม่ ดู PROJECT_CLEANUP.md สำหรับรายการไฟล์
 
 สถานะการยืนยันรวมยัง **PARTIAL** จนกว่าจะพิสูจน์ Snapshot-value Fidelity ได้ ดู TEST_BASELINE.md และ LOCAL_IMPORT_ACCEPTANCE_2026-10-19.md สำหรับหลักฐานจริง ขอบเขตนี้ไม่รวมการเข้าถึงฐานอื่นหรือการ Restore ทับฐานเดิม
+
+v1.0 รับรองขอบเขตเครื่อง Laragon ที่มีหลักฐานเท่านั้น (Apache2.4.66/PHP8.3.30/MySQL8.4.3) ไม่ใช่ Git Release หรือรองรับ MariaDB/ทุกเครื่อง ฐานว่างจาก test incident เก่าที่ระบุตัวไม่ได้ยัง OWNERSHIP UNPROVEN ห้ามเดาจากชื่อ/Prefix แล้วลบหรือ Rename

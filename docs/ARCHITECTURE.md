@@ -1,4 +1,4 @@
-# Architecture — Local MySQL Export / Import Manager
+# Architecture — Local MySQL Export / Import Manager v1.0
 
 This document describes the **current implemented working tree after cleanup**, not former Restore prototypes or future deployment proposals. Last reviewed: 2026-10-19. See [AGENTS.md](../AGENTS.md) for agent rules, [Local User Guide](LOCAL_USER_GUIDE.md) for operation and [TEST_BASELINE.md](../TEST_BASELINE.md) for measured evidence.
 
@@ -29,7 +29,7 @@ flowchart LR
     download --> runtime
 ```
 
-Dashboard/Export/Import/Settings perform a real reader verification when private settings exist. History, static assets and status polling never open MySQL. The diagram's server is the pinned local instance; it is not permission for automatic live tests.
+Dashboard/Export/Import/Settings perform real connection verification using the saved account when private settings exist. History, static assets and status polling never open MySQL. The diagram's server is the pinned local instance; it is not permission for automatic live tests. The Import route passes that result as `isConnected` to its view: a saved profile/artifact alone must not enable preparation. Opening the page never starts Import; execution requires a prepared owned job and explicit confirmation.
 
 ## 2. Technology and prerequisites
 
@@ -302,7 +302,7 @@ Retained production-mode path compatibility accepts only the approved existing `
 | Database/AuthorizedSourcePolicy, DatabaseRepository, ConnectionFactory | Protected/system/path eligibility, account-visible names and exact visibility recheck, mysqli creation |
 | Database/DatabaseOperationLock, FileDatabaseOperationLock | Shared operation exclusion |
 | Database/ConnectionSettingsStore, Support/WindowsPrivateDirectory | Private SID/ACL-bound plaintext settings, atomic CAS writes and path checks |
-| Http/Router, Controller/BackupController, Controller/SettingsController | Page allowlist, reader connection, validated storage selection |
+| Http/Router, Controller/BackupController, Controller/SettingsController | Page allowlist, saved-account connection, validated storage selection |
 | Support/Config, RuntimeDataPaths, RuntimeDataBootstrap | Config merge and centralized runtime paths/session setup |
 | Support/Auth, Session, Security, Request, Flash | Direct-loopback policy, session/CSRF/escaping/input/flash support |
 | Support/BackupPathPolicy, DownloadAuthorization | Containment/allowlist and download authorization/integrity |
@@ -315,7 +315,7 @@ Class names omit .php in this table; their PSR-like paths under app/ resolve thr
 
 Supported: local Dashboard/Export/Import/History/Settings; one/multiple/all authorized-source sequential exports; trusted artifact native Import into new owned targets; persistent statuses, metadata history and protected download.
 
-Unsupported: arbitrary SQL upload, old custom dump Import, overwrite-existing DB, broad-source discovery, stored objects/non-InnoDB/full database backup, live Restore framework, scheduler, automatic retry/cleanup/privilege escalation, LAN/remote service, general MariaDB portability or cross-machine pin migration. No removed native/signing/Windows deployment machinery should be rebuilt as a prerequisite.
+Unsupported: arbitrary SQL upload, old custom dump Import, overwrite-existing DB, discovery beyond the saved account's visibility or protected/system eligibility boundaries, stored objects/non-InnoDB/full database backup, live Restore framework, scheduler, automatic retry/cleanup/privilege escalation, LAN/remote service, general MariaDB portability or cross-machine pin migration. No removed native/signing/Windows deployment machinery should be rebuilt as a prerequisite.
 
 ## 19. Known limitations
 
@@ -327,6 +327,9 @@ Unsupported: arbitrary SQL upload, old custom dump Import, overwrite-existing DB
 - Legacy manifestless download compatibility is weaker than current Import eligibility.
 - Process, artifact, metadata/review and comparison bounds can reject large/unsupported cases. Never silently claim verification when a bound is exceeded.
 - Git history can retain previously tracked SQL/runtime artifacts even after current-tree index removal. Current-tree hygiene is not history erasure.
+- The previously reported accidental empty test database remains OWNERSHIP UNPROVEN. No exact-name ownership evidence was recovered; naming patterns are not proof and no cleanup is authorized by this documentation.
+
+The v1.0 label denotes this documented local scope only. Historical native Import exit0, schema9/9 and live-source values9/9 are separate evidence; overall snapshot-fidelity acceptance remains PARTIAL. No tag/release, deployment, new database operation or universal compatibility claim accompanies the label.
 
 ## 20. Safe extension/maintenance points
 

@@ -1,5 +1,31 @@
 # Change-Based Test Baseline
 
+## 2026-10-19 — v1.0 final Import UI, documentation and source hygiene
+
+Scope: current review branch starting at69d7499; final local application documentation and one verified Import route defect only. No new architecture, engine, SQL parser, deployment tooling or runtime migration.
+
+Root cause: public/index.php verified the connection for Import but omitted isConnected from that route's view data. The existing view therefore rendered Disconnected/disabled preparation even when the real connection succeeded. Minimal fix passes the verified flag and replaces the obsolete separate-credential description with the actual shared Settings profile. No changes to Import execution/confirmation, API, CSRF, historical job records or evidence presentation.
+
+### New focused checks actually executed
+
+| Check | Result / evidence |
+|---|---|
+| TDD reproduction: two new actual Import-route/render tests | Initial1 PASS/1 FAIL; connected fixture incorrectly disabled preparation. Disconnected fixture remained disabled. Both use isolated copies of app/public/views/config and synthetic trusted SQL/provenance; only external connection boundary is fake. Child PHP has mysqli_init disabled |
+| LocalImportUiTest after fix | **4 PASS /0 FAIL /0 SKIP**: both new connected/disconnected route cases plus directly affected existing UI and API-contract checks. Preparation requires connection+artifact; execution stays hidden and snapshot facet NOT VERIFIED |
+| Retained dependency/autoload consistency, individual name filter | **1 PASS /0 FAIL /0 SKIP**; declarations/imports under app/public/views/tools resolve without execution; only two retained History/provenance utilities in app/Restore |
+| Changed PHP lint | **2/2 PASS**: public/index.php and tests/LocalImportUiTest.php, PHP8.3.30 |
+| Actual existing Laragon Apache Import GET | **HTTP200**, Server Apache/2.4.66 Win64/OpenSSL3.0.18/PHP8.3.30; one h1, Import JS included, preparation enabled, no Disconnected notice, execute form hidden, snapshot NOT VERIFIED. Uses saved profile; readonly normal connection verification/discovery only |
+| Actual browser rendering, Import | PASS — source/SQL/bytes choices, Settings-profile/new-target explanation, navigation and result facets rendered; prepare enabled. No artifact selected and no Prepare/Execute clicked. Screenshot stored privately outside Git. Desktop current viewport inspected; mobile was not rerun because no layout/CSS/JS changed |
+| Maintained Markdown local references | **17 checked /0 broken** across README, AGENTS, Architecture and User Guide |
+| Current Git-tree hygiene | **112 tracked files**, no SQL/backups/jobs/history/session/log/private key/local-config/binary/build/deployment/native artifacts tracked; storage/.htaccess is the retained protection rule. Historical Git exposure is not erased |
+| Protected local runtime preservation | **38 non-session runtime files**: filename/size/mtime aggregate SHA-256 before/after unchanged (27059910966172b83674273b246606a67dd4853537fd37aae514b26990818fa6). This is metadata evidence, not a fresh SQL-content fidelity test. config/local.php absent before/after; normal Session writes allowed by HTTP smoke |
+
+PHP focused checks used `php -d disable_functions=mysqli_init tests/run.php LocalImportUiTest` and the individual `Cleanup retained application declarations` name filter. No bare runner, connection79/discovery29/Export39 suite, live Export/Import or full regression rerun. Independent read-only source/document review found no Critical/Important/Minor findings and judged the scoped change ready to merge; the reviewer did not rerun tests or independently verify live/historical evidence. git diff --check and exact staged review/secret checks are required before the authorized commits; final Git synchronization outcome is reported separately with actual HEADs, not assumed here.
+
+Reused unchanged evidence, not newly asserted PASS: live Export4/4, Export focused39/39, native Import exit0, effective schema9/9, live-source values9/9, finalization12/12, cleanup50 PASS/1 SKIP, connection79/79, discovery29/29, live discovery/auto-connect and Apache Settings/Export200. The historical failed Import job and original test database remain unchanged; overall historical Import acceptance stays **PARTIAL**, SQL-snapshot value fidelity **NOT VERIFIED**.
+
+Accidental older empty test database: **OWNERSHIP UNPROVEN**. No new enumeration, guessed name, ownership inference, DROP/rename or cleanup. No MySQL data/schema/account/GRANT changes, new Export/Import execution, protected-schema access, native client invocation, Laragon/Windows/service/config mutation or tag/release. Existing source/public behavior and OS trust limitations remain documented; v1.0 is a local documented scope, not universal compatibility or full snapshot proof.
+
 ## 2026-10-19 — FINAL LIVE Apache auto-connect and database discovery acceptance
 
 Scope: existing source at bbda3d1, saved Settings profile, actual Laragon Apache/browser and read-only discovery. Client timezone Asia/Bangkok; browser checks13:49–13:54 +07:00. No application source changes or new components were required. User subsequently authorized committing/pushing the evidence on the existing review branch only.
