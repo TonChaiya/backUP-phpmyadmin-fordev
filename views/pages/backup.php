@@ -14,6 +14,7 @@ $databases = is_array($databases ?? null) ? $databases : [];
             <span class="panel-badge"><?= !empty($isConnected) ? 'Connected' : 'MySQL' ?></span>
         </div>
         <form class="section-form" method="post" action="index.php?page=backup" autocomplete="off">
+            <p>ใช้บัญชี backup_reader ที่จำกัดสิทธิ์เฉพาะฐานที่อนุญาต รหัส MySQL ไม่ใช่รหัสผ่านเว็บไซต์ หากไม่มีรหัสให้ติดต่อผู้ดูแล ไม่ใช้ root แทนและไม่รีเซ็ตรหัสอัตโนมัติ</p>
             <input type="hidden" name="csrf_token" value="<?= Security::e((string) $csrfToken) ?>">
             <div class="form-grid">
                 <div class="field">
@@ -27,12 +28,12 @@ $databases = is_array($databases ?? null) ? $databases : [];
             </div>
             <div class="field">
                 <label for="db-username">Username</label>
-                <input id="db-username" name="username" type="text" value="<?= Security::e((string) ($connectionData['username'] ?? 'root')) ?>" autocomplete="username" required>
+                <input id="db-username" name="username" type="text" value="<?= Security::e((string) ($connectionData['username'] ?? 'backup_reader')) ?>" autocomplete="username" required>
             </div>
             <div class="field">
                 <label for="db-password">Password</label>
                 <input id="db-password" name="password" type="password" autocomplete="current-password">
-                <?php if (!empty($isConnected)): ?><small>เว้นว่างไว้ได้จนกว่าจะเชื่อมต่อใหม่ รหัสเดิมเก็บเฉพาะฝั่ง Server Session</small><?php endif; ?>
+                <?php if (!empty($isConnected)): ?><small>ใช้รายการฐานด้านล่างได้โดยไม่ต้องส่งฟอร์มเชื่อมต่อใหม่ รหัสอยู่เฉพาะ Server Session หากเชื่อมต่อใหม่ต้องกรอกรหัสอีกครั้ง</small><?php endif; ?>
             </div>
             <button class="primary-action" type="submit" name="action" value="connect">ทดสอบและดึงรายการฐานข้อมูล</button>
         </form>
@@ -44,6 +45,10 @@ $databases = is_array($databases ?? null) ? $databases : [];
             <span class="panel-badge"><?= Security::e((string) count($databases)) ?> ฐาน</span>
         </div>
         <form class="section-form" id="backup-job-form" method="post" action="job.php" autocomplete="off">
+            <div class="dialog-notice" data-export-scope>
+                <p>MySQL 8.4 mysqldump: รองรับโครงสร้าง InnoDB base table และแถวข้อมูล ในรูปแบบ SQL ของ official MySQL utility เท่านั้น ไม่ใช่ Full database backup</p>
+                <p>ไม่รวม Views, Triggers, Stored procedures/functions, Events และ Non-InnoDB engines — ไม่รองรับการ Export วัตถุเหล่านี้ หลีกเลี่ยงการเปลี่ยนโครงสร้างตารางระหว่างสำรอง</p>
+            </div>
             <input type="hidden" name="csrf_token" value="<?= Security::e((string) $csrfToken) ?>">
             <?php if ($databases === []): ?>
                 <div class="empty-state"><strong>ยังไม่มีรายการฐานข้อมูล</strong><span>เชื่อมต่อก่อนเริ่ม Manual Backup</span></div>

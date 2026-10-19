@@ -5,7 +5,6 @@ declare(strict_types=1);
 use BackupApp\Support\Security;
 
 $recentBackupJobs = is_array($recentBackupJobs ?? null) ? $recentBackupJobs : [];
-$restoreSafety = is_array($restoreSafety ?? null) ? $restoreSafety : ['open' => false, 'checks' => []];
 ?>
 <section class="metric-strip" aria-label="ภาพรวมระบบ">
     <article class="metric-item"><span>ฐานข้อมูลที่เลือกได้</span><strong><?= Security::e((string) ($databaseCount ?? 0)) ?></strong><small>จาก connection ใน session นี้</small></article>
@@ -20,7 +19,7 @@ $restoreSafety = is_array($restoreSafety ?? null) ? $restoreSafety : ['open' => 
         <a class="text-link" href="index.php?page=backup">ดูสถานะ</a>
     </div>
     <?php if ($recentBackupJobs === []): ?>
-        <div class="empty-state"><strong>ยังไม่มีงานใน session นี้</strong><span>เริ่มงานจากหน้า Backup แล้วสถานะจริงจะแสดงที่นี่</span></div>
+        <div class="empty-state"><strong>ยังไม่มีงานใน session นี้</strong><span>เริ่มงานจากหน้า Export แล้วสถานะจริงจะแสดงที่นี่</span></div>
     <?php else: ?>
         <ul class="activity-list">
         <?php foreach ($recentBackupJobs as $job): $summary = is_array($job['summary'] ?? null) ? $job['summary'] : []; ?>
@@ -31,15 +30,10 @@ $restoreSafety = is_array($restoreSafety ?? null) ? $restoreSafety : ['open' => 
 </section>
 
 <aside class="editorial-section safety-summary" aria-labelledby="restore-safety-heading">
-    <span class="panel-kicker">Fail-closed</span>
-    <h2 id="restore-safety-heading">Restore execution ปิดอยู่</h2>
-    <p>ระบบ Phase 3 ตรวจไฟล์และ SQL structure เท่านั้น ไม่มี SQL Executor และยังไม่ยืนยัน isolated instance</p>
-    <dl class="compact-definition">
-        <?php foreach (($restoreSafety['checks'] ?? []) as $name => $value): ?>
-            <div><dt><?= Security::e(str_replace('_', ' ', (string) $name)) ?></dt><dd class="status-pill" data-state="blocked"><?= Security::e((string) $value) ?></dd></div>
-        <?php endforeach; ?>
-    </dl>
-    <a class="secondary-action" href="index.php?page=restore">เปิด Restore Preflight</a>
+    <span class="panel-kicker">Import protection</span>
+    <h2 id="restore-safety-heading">Import ลงฐานใหม่เท่านั้น</h2>
+    <p>ตรวจไฟล์และ SHA-256 ก่อนใช้ mysql.exe ระบบสร้างชื่อฐานปลายทางเองและใช้บัญชีที่มีสิทธิ์เฉพาะฐานนั้น จึงไม่เขียนทับฐานต้นทาง</p>
+    <a class="secondary-action" href="index.php?page=import">เปิด Import</a>
 </aside>
 </div>
 

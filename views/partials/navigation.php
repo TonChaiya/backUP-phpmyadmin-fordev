@@ -6,9 +6,8 @@ use BackupApp\Support\Security;
 
 $items = [
     'dashboard' => 'Dashboard',
-    'backup' => 'Backup',
-    'restore' => 'Restore',
-    'restore-integration' => 'Restore Lab',
+    'backup' => 'Export',
+    'import' => 'Import',
     'history' => 'History',
     'settings' => 'Settings',
 ];
@@ -30,11 +29,5 @@ $items = [
             </a>
         <?php endforeach; ?>
     </nav>
-    <?php if ($authConfigured): ?>
-        <form method="post" action="index.php" class="logout-form">
-            <input type="hidden" name="csrf_token" value="<?= Security::e($csrfToken) ?>">
-            <button class="text-action" type="submit" name="action" value="logout">ออกจากระบบ</button>
-        </form>
-    <?php endif; ?>
 </header>
 

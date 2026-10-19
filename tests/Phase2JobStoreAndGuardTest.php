@@ -37,12 +37,12 @@ test('Phase2JobStore creates unpredictable job with truthful queued summary', fu
 
     try {
         $store = new BackupJobStore($path);
-        $job = $store->create(['alpha', 'beta']);
+        $job = $store->create(['autoprintdb', 'drugmap_db']);
 
         assertTrueValue(preg_match('/^[a-f0-9]{32}$/', $job['id']) === 1);
         assertSameValue('queued', $job['status']);
         assertSameValue(['queued' => 2, 'running' => 0, 'succeeded' => 0, 'failed' => 0, 'interrupted' => 0, 'total' => 2], $job['summary']);
-        assertSameValue(['alpha', 'beta'], array_column($job['databases'], 'name'));
+        assertSameValue(['autoprintdb', 'drugmap_db'], array_column($job['databases'], 'name'));
         assertSameValue($job, $store->read($job['id']));
     } finally {
         phase2RemoveDirectory($path);
@@ -54,7 +54,7 @@ test('Phase2JobStore appends atomic snapshots and ignores an incomplete trailing
 
     try {
         $store = new BackupJobStore($path);
-        $created = $store->create(['alpha']);
+        $created = $store->create(['autoprintdb']);
         $updated = $store->update($created['id'], static function (array $job): array {
             $job['status'] = 'running';
             $job['databases'][0]['status'] = 'running';
@@ -94,7 +94,7 @@ test('Phase2JobStore rejects traversal IDs and never persists supplied secret fi
         }
 
         assertTrueValue($failed, 'Traversal job ID must be rejected');
-        $job = $store->create(['alpha']);
+        $job = $store->create(['autoprintdb']);
         $store->update($job['id'], static function (array $state): array {
             $state['password'] = 'SENTINEL-DB-PASSWORD';
             $state['session_token'] = 'SENTINEL-SESSION';

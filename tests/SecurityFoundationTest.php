@@ -8,24 +8,25 @@ use BackupApp\Support\Logger;
 use BackupApp\Support\Security;
 use BackupApp\Support\Session;
 
-test('configured authentication accepts the correct password', static function (): void {
+test('local-only access ignores configured password hashes and never enables LAN login', static function (): void {
     $auth = new Auth([
         'username' => 'admin',
         'password_hash' => password_hash('correct horse', PASSWORD_DEFAULT),
     ]);
 
-    assertTrueValue($auth->attempt('admin', 'correct horse'));
-    assertTrueValue($auth->isAuthorized('192.0.2.10'));
+    assertFalseValue($auth->attempt('admin', 'correct horse'));
+    assertFalseValue($auth->isConfigured());
+    assertFalseValue($auth->isAuthorized('192.0.2.10'));
 });
 
-test('configured authentication rejects invalid credentials', static function (): void {
+test('application password is not required for direct local access', static function (): void {
     $auth = new Auth([
         'username' => 'admin',
         'password_hash' => password_hash('correct horse', PASSWORD_DEFAULT),
     ]);
 
     assertFalseValue($auth->attempt('admin', 'wrong'));
-    assertFalseValue($auth->isAuthorized('127.0.0.1'), 'Configured auth must also protect loopback');
+    assertTrueValue($auth->isAuthorized('127.0.0.1'));
 });
 
 test('unconfigured authentication permits only the direct loopback peer', static function (): void {
@@ -70,7 +71,7 @@ test('logout invalidates authentication state', static function (): void {
     assertFalseValue(isset($_SESSION['active_backup_job_id']));
     assertFalseValue(isset($_SESSION['backup_job_contexts']));
     assertFalseValue(isset($_SESSION['backup_connection_context']));
-    assertFalseValue($auth->isAuthorized('127.0.0.1'));
+    assertTrueValue($auth->isAuthorized('127.0.0.1'));
 });
 
 test('csrf accepts the session token and rejects missing or invalid tokens', static function (): void {

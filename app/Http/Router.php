@@ -15,8 +15,7 @@ final class Router
         $routes = [
             'dashboard' => 'dashboard',
             'backup' => 'backup',
-            'restore' => 'restore',
-            'restore-integration' => 'restore-integration',
+            'import' => 'import',
             'history' => 'history',
             'settings' => 'settings',
         ];

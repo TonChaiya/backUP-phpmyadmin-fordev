@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace BackupApp\Backup;
 
+use BackupApp\Database\AuthorizedSourcePolicy;
 use RuntimeException;
 
 final class BackupJobStore
 {
     private const STATES = ['queued', 'running', 'succeeded', 'failed', 'interrupted'];
 
+    private AuthorizedSourcePolicy $sourcePolicy;
+
     public function __construct(private string $directory)
     {
+        $this->sourcePolicy = new AuthorizedSourcePolicy();
         if (!is_dir($directory) && !@mkdir($directory, 0750, true) && !is_dir($directory)) {
             throw new RuntimeException('Cannot create job storage');
         }
@@ -27,6 +31,12 @@ final class BackupJobStore
 
         if ($databases === []) {
             throw new RuntimeException('A backup job requires at least one database');
+        }
+
+        foreach ($databases as $database) {
+            if (!$this->sourcePolicy->isAuthorized($database)) {
+                throw new RuntimeException('Backup source is not authorized');
+            }
         }
 
         do {
@@ -208,6 +218,10 @@ final class BackupJobStore
         foreach (is_array($job['databases'] ?? null) ? $job['databases'] : [] as $database) {
             if (!is_array($database) || !is_string($database['name'] ?? null)) {
                 continue;
+            }
+
+            if (!$this->sourcePolicy->isAuthorized($database['name'])) {
+                throw new RuntimeException('Backup job contains an unauthorized source');
             }
 
             $state = in_array($database['status'] ?? null, self::STATES, true)

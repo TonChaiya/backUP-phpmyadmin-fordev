@@ -11,7 +11,7 @@ use BackupApp\Support\Security;
 
 $config = require dirname(__DIR__) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'bootstrap.php';
 $logger = new Logger((string) $config['log_path']);
-$auth = new Auth($config['auth']);
+$auth = new Auth();
 $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
 
 if (!$auth->isAuthorized($remoteAddress)) {

@@ -9,14 +9,13 @@ final class Auth
     /**
      * @param array{username?: string, password_hash?: string} $config
      */
-    public function __construct(private array $config)
+    public function __construct(array $config = [])
     {
     }
 
     public function isConfigured(): bool
     {
-        return trim((string) ($this->config['username'] ?? '')) !== ''
-            && trim((string) ($this->config['password_hash'] ?? '')) !== '';
+        return false; // Local-only manager: no application login screen.
     }
 
     public function isDirectLoopback(string $remoteAddress): bool
@@ -26,38 +25,12 @@ final class Auth
 
     public function isAuthorized(string $remoteAddress): bool
     {
-        if (!$this->isConfigured()) {
-            return $this->isDirectLoopback($remoteAddress);
-        }
-
-        return ($_SESSION['auth']['authenticated'] ?? false) === true
-            && hash_equals(
-                (string) $this->config['username'],
-                (string) ($_SESSION['auth']['username'] ?? '')
-            );
+        return $this->isDirectLoopback($remoteAddress);
     }
 
     public function attempt(string $username, string $password): bool
     {
-        if (!$this->isConfigured()) {
-            return false;
-        }
-
-        $validUsername = hash_equals((string) $this->config['username'], $username);
-        $validPassword = password_verify($password, (string) $this->config['password_hash']);
-
-        if (!$validUsername || !$validPassword) {
-            return false;
-        }
-
-        Session::regenerate();
-        $_SESSION['auth'] = [
-            'authenticated' => true,
-            'username' => (string) $this->config['username'],
-            'authenticated_at' => time(),
-        ];
-
-        return true;
+        return false; // Application login is retired; access remains direct-loopback only.
     }
 
     public function logout(): void

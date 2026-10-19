@@ -5,8 +5,8 @@ RewriteEngine On
 RewriteRule (^|/)\. - [F,L]
 RewriteRule ^(app|config|storage|views|tests|tools|docs|native)(/|$) - [F,L]
 
-<FilesMatch "^(PHASE[0-9]+_.*\.md|RESTORE_INTEGRATION_.*\.md|TEST_BASELINE\.md|README\.md|\.gitignore|\.gitattributes)$">
+<FilesMatch "^(PHASE[0-9]+_.*\.md|RESTORE_INTEGRATION_.*\.md|TEST_BASELINE\.md|README\.md|AGENTS\.md|\.gitignore|\.gitattributes)$">
     Require all denied
 </FilesMatch>
 RewriteRule ^(?:index\.php)?$ public/index.php [END]
-RewriteRule ^(assets(?:/.*)?|job\.php|restore-job\.php|restore-integration\.php|download\.php)$ public/$1 [END]
+RewriteRule ^(assets(?:/.*)?|job\.php|import-job\.php|download\.php)$ public/$1 [END]

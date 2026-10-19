@@ -13,10 +13,11 @@ $runtimeInfo = is_array($runtimeInfo ?? null) ? $runtimeInfo : [];
     <dl class="definition-list">
         <div><dt>Host</dt><dd><?= Security::e((string) ($connectionData['host'] ?? '127.0.0.1')) ?></dd></div>
         <div><dt>Port</dt><dd><?= Security::e((string) ($connectionData['port'] ?? 3306)) ?></dd></div>
-        <div><dt>Username</dt><dd><?= Security::e((string) ($connectionData['username'] ?? 'root')) ?></dd></div>
+        <div><dt>Username</dt><dd><?= Security::e((string) ($connectionData['username'] ?? 'backup_reader')) ?></dd></div>
         <div><dt>Password</dt><dd>ไม่แสดงผล</dd></div>
     </dl>
     <a class="secondary-action" href="index.php?page=backup">จัดการ Connection</a>
+    <p>รหัส MySQL แยกจากเว็บไซต์ซึ่งไม่ต้อง Login บน localhost หากไม่มีรหัสบัญชีที่จำกัดสิทธิ์ ให้ติดต่อผู้ดูแล ระบบไม่รีเซ็ตรหัสผ่าน สร้างบัญชี หรือเพิ่ม GRANT อัตโนมัติ</p>
 </section>
 
 <section class="editorial-section settings-storage settings-section" aria-labelledby="storage-settings-title">
@@ -43,7 +44,7 @@ $runtimeInfo = is_array($runtimeInfo ?? null) ? $runtimeInfo : [];
 <section class="editorial-section settings-security settings-section" aria-labelledby="security-settings-title">
     <div class="section-heading"><div><span class="panel-kicker">Protection</span><h2 id="security-settings-title">Security &amp; Access</h2></div></div>
     <dl class="definition-list">
-        <div><dt>Authentication</dt><dd><?= ($authMode ?? '') === 'configured' ? 'Administrator configured' : 'Direct loopback only' ?></dd></div>
+        <div><dt>Website access</dt><dd>Direct loopback only · ไม่ใช้ Application Login</dd></div>
         <div><dt>Request protection</dt><dd>CSRF + SameSite session</dd></div>
         <div><dt>Downloads</dt><dd>Signed, authorized artifacts only</dd></div>
     </dl>
@@ -54,7 +55,7 @@ $runtimeInfo = is_array($runtimeInfo ?? null) ? $runtimeInfo : [];
     <dl class="definition-list">
         <div><dt>PHP</dt><dd><?= Security::e((string) ($runtimeInfo['php_version'] ?? PHP_VERSION)) ?></dd></div>
         <div><dt>Platform</dt><dd><?= Security::e((string) ($runtimeInfo['environment'] ?? PHP_OS_FAMILY)) ?></dd></div>
-        <div><dt>Restore execution</dt><dd class="status-text warning">Disabled · no SQL executor</dd></div>
+        <div><dt>Import</dt><dd>Official mysql.exe · new exact-scoped target only</dd></div>
     </dl>
 </section>
 </div>

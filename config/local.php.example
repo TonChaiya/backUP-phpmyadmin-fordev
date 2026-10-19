@@ -7,10 +7,8 @@ return [
     // Production deployment must set both values explicitly after ProgramData paths and ACLs exist:
     // 'runtime_data_mode' => 'production',
     // 'runtime_data_root' => 'C:\\ProgramData\\BackupPhpMyAdmin\\RuntimeData',
-    'auth' => [
-        'username' => 'admin',
-        'password_hash' => '$2y$12$replace_with_password_hash_output',
-    ],
+    // Direct-loopback access only; no application username/password is needed.
+    // MySQL credentials belong to the scoped Export/Import workflow, never here.
     // backup_path and allowed_backup_roots are derived from runtime_data_root/backups.
     // Do not configure independent writable roots here.
 ];

@@ -8,7 +8,6 @@ $pageTitle = isset($pageTitle) ? (string) $pageTitle : (string) ($config['app_na
 $heading = isset($heading) ? (string) $heading : $pageTitle;
 $description = isset($description) ? (string) $description : '';
 $flashMessages = is_array($flashMessages ?? null) ? $flashMessages : [];
-$authConfigured = (bool) ($authConfigured ?? false);
 $csrfToken = (string) ($csrfToken ?? '');
 ?>
 <!doctype html>
@@ -40,7 +39,7 @@ $csrfToken = (string) ($csrfToken ?? '');
                             <span class="status-dot <?= !empty($isConnected) ? 'is-online' : '' ?>" aria-hidden="true"></span>
                             <span><strong><?= !empty($isConnected) ? 'เชื่อมต่อแล้ว' : 'ยังไม่เชื่อมต่อ' ?></strong><small>MySQL / MariaDB session</small></span>
                         </div>
-                        <a class="primary-action" href="index.php?page=backup">เริ่ม Manual Backup</a>
+                        <a class="primary-action" href="index.php?page=backup">เริ่ม Export</a>
                     </div>
                 <?php endif; ?>
             </header>
@@ -59,7 +58,7 @@ $csrfToken = (string) ($csrfToken ?? '');
         </main>
     </div>
 <script src="assets/app.js" defer></script>
-<?php if (in_array(($pageScript ?? ''), ['assets/backup-jobs.js', 'assets/restore-jobs.js'], true)): ?>
+<?php if (in_array(($pageScript ?? ''), ['assets/backup-jobs.js', 'assets/local-import.js'], true)): ?>
     <script src="<?= Security::e((string) $pageScript) ?>" defer></script>
 <?php endif; ?>
 </body>

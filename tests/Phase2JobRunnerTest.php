@@ -67,11 +67,11 @@ test('Phase2JobRunner executes sequentially in declared order and continues afte
         $store = new BackupJobStore($path);
         $guard = new BackupExecutionGuard($path);
         $runner = new BackupJobRunner($store, $guard, new Logger($path . DIRECTORY_SEPARATOR . 'test.log'));
-        $job = $store->create(['alpha', 'beta', 'gamma']);
-        $operation = new Phase2FakeBackupOperation(['beta']);
-        $result = $runner->run($job['id'], $operation, ['SENTINEL-DB-DETAIL-beta']);
+        $job = $store->create(['autoprintdb', 'drugmap_db', 'prepack_labels']);
+        $operation = new Phase2FakeBackupOperation(['drugmap_db']);
+        $result = $runner->run($job['id'], $operation, ['SENTINEL-DB-DETAIL-drugmap_db']);
 
-        assertSameValue(['alpha', 'beta', 'gamma'], $operation->calls);
+        assertSameValue(['autoprintdb', 'drugmap_db', 'prepack_labels'], $operation->calls);
         assertTrueValue($operation->finished);
         assertSameValue(['succeeded', 'failed', 'succeeded'], array_column($result['databases'], 'status'));
         assertSameValue('failed', $result['status']);
@@ -79,7 +79,7 @@ test('Phase2JobRunner executes sequentially in declared order and continues afte
         assertSameValue(1, $result['summary']['failed']);
         assertSameValue('ไม่สามารถสำรองฐานข้อมูลนี้ได้', $result['databases'][1]['error']['message']);
         assertNotContainsValue('SENTINEL', (string) file_get_contents($store->pathFor($job['id'])));
-        assertNotContainsValue('SENTINEL-DB-DETAIL-beta', (string) file_get_contents($path . DIRECTORY_SEPARATOR . 'test.log'));
+        assertNotContainsValue('SENTINEL-DB-DETAIL-drugmap_db', (string) file_get_contents($path . DIRECTORY_SEPARATOR . 'test.log'));
     } finally {
         phase2RemoveDirectory($path);
     }
@@ -91,7 +91,7 @@ test('Phase2JobRunner marks every queued database failed when operation start fa
     try {
         $store = new BackupJobStore($path);
         $runner = new BackupJobRunner($store, new BackupExecutionGuard($path), new Logger($path . DIRECTORY_SEPARATOR . 'test.log'));
-        $job = $store->create(['alpha', 'beta']);
+        $job = $store->create(['autoprintdb', 'drugmap_db']);
         $result = $runner->run($job['id'], new Phase2FakeBackupOperation([], true), ['SENTINEL-START-DETAIL']);
 
         assertSameValue('failed', $result['status']);
@@ -108,7 +108,7 @@ test('Phase2JobRunner rejects duplicate ownership without mutating the job', fun
     try {
         $store = new BackupJobStore($path);
         $guard = new BackupExecutionGuard($path);
-        $job = $store->create(['alpha']);
+        $job = $store->create(['autoprintdb']);
         $held = $guard->acquireJob($job['id']);
         $failed = false;
 
@@ -135,10 +135,10 @@ test('Phase2JobRunner recovery interrupts only a claimed orphan and never retrie
     try {
         $store = new BackupJobStore($path);
         $runner = new BackupJobRunner($store, new BackupExecutionGuard($path), new Logger($path . DIRECTORY_SEPARATOR . 'test.log'));
-        $unclaimed = $store->create(['waiting']);
+        $unclaimed = $store->create(['prepack_labels']);
         assertSameValue('queued', $runner->recoverInterrupted($unclaimed['id'])['status']);
 
-        $claimed = $store->create(['alpha', 'beta']);
+        $claimed = $store->create(['autoprintdb', 'drugmap_db']);
         $store->update($claimed['id'], static function (array $job): array {
             $job['execution_claimed_at'] = date('c');
             $job['status'] = 'running';
@@ -170,7 +170,7 @@ test('Phase2JobRunner interrupts an unclaimed queued job after connection contex
     try {
         $store = new BackupJobStore($path);
         $runner = new BackupJobRunner($store, new BackupExecutionGuard($path), new Logger($path . DIRECTORY_SEPARATOR . 'test.log'));
-        $job = $store->create(['alpha', 'beta']);
+        $job = $store->create(['autoprintdb', 'drugmap_db']);
         $interrupted = $runner->interruptQueued($job['id'], 'connection_changed', 'การเชื่อมต่อเปลี่ยนหลังสร้างงาน');
 
         assertSameValue('interrupted', $interrupted['status']);

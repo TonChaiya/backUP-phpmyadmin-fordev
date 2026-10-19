@@ -11,14 +11,4 @@ return [
     'runtime_data_root' => $defaultRuntimeDataRoot,
     'max_backup_files' => 200,
     'connect_timeout_seconds' => 5,
-    'auth' => [
-        'username' => 'admin',
-        'password_hash' => '',
-    ],
-    'excluded_databases' => [
-        'information_schema',
-        'performance_schema',
-        'mysql',
-        'sys',
-    ],
 ];

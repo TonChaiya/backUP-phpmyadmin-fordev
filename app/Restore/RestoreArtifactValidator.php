@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BackupApp\Restore;
 
+/** Legacy History metadata only; not an Import eligibility or execution gate. */
 final class RestoreArtifactValidator
 {
     public const RESTORE_ORDER = [
@@ -21,7 +22,6 @@ final class RestoreArtifactValidator
         'session_restore',
     ];
 
-    private const COMPLETION_MARKER = '-- Backup completed successfully';
     private const MAX_MANIFEST_BYTES = 1048576;
     private string $root;
 
@@ -57,51 +57,6 @@ final class RestoreArtifactValidator
             'status' => 'candidate',
             'database' => (string) $manifest['database'],
             'bytes' => (int) $bytes,
-        ]);
-    }
-
-    /** @return array<string, mixed> */
-    public function preflight(string $relativePath): array
-    {
-        $base = $this->baseResult($relativePath);
-        $sqlPath = $this->resolve($relativePath);
-        $manifestPath = $sqlPath !== null ? $this->containedFile($sqlPath . '.json') : null;
-
-        if ($sqlPath === null || $manifestPath === null) {
-            return array_merge($base, ['status' => 'missing_pair']);
-        }
-
-        $manifest = $this->manifest($manifestPath);
-        $bytes = filesize($sqlPath);
-
-        if (!$this->validMetadata($manifest, $relativePath, basename($sqlPath), $bytes)) {
-            return array_merge($base, ['status' => 'invalid_metadata']);
-        }
-
-        $tail = $this->tail($sqlPath);
-
-        if ($tail === null || !str_ends_with(rtrim($tail), self::COMPLETION_MARKER)) {
-            return array_merge($base, ['status' => 'completion_marker_missing', 'database' => (string) $manifest['database']]);
-        }
-
-        $sha256 = hash_file('sha256', $sqlPath);
-
-        if (!is_string($sha256) || !hash_equals(strtolower((string) $manifest['sha256']), strtolower($sha256))) {
-            return array_merge($base, ['status' => 'integrity_mismatch', 'database' => (string) $manifest['database']]);
-        }
-
-        if (!$this->provenanceMatches($manifest, $relativePath)) {
-            return array_merge($base, ['status' => 'unverified_origin', 'database' => (string) $manifest['database']]);
-        }
-
-        return array_merge($base, [
-            'eligible' => true,
-            'integrity_verified' => true,
-            'status' => 'verified',
-            'database' => (string) $manifest['database'],
-            'bytes' => (int) $bytes,
-            'sha256' => $sha256,
-            'sql_path' => $sqlPath,
         ]);
     }
 
@@ -222,22 +177,4 @@ final class RestoreArtifactValidator
             && hash_equals(strtolower((string) ($origin['sha256'] ?? '')), strtolower((string) ($manifest['sha256'] ?? '')));
     }
 
-    private function tail(string $path): ?string
-    {
-        $handle = @fopen($path, 'rb');
-        if ($handle === false) {
-            return null;
-        }
-
-        try {
-            $size = filesize($path);
-            if ($size === false || fseek($handle, max(0, $size - 4096)) !== 0) {
-                return null;
-            }
-            $tail = stream_get_contents($handle);
-            return is_string($tail) ? $tail : null;
-        } finally {
-            fclose($handle);
-        }
-    }
 }

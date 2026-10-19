@@ -45,7 +45,7 @@ $logger = new Logger((string) $config['log_path']);
 $secrets = Security::connectionPasswordSecrets($_POST, $_SESSION);
 
 try {
-    $auth = new Auth($config['auth']);
+    $auth = new Auth();
     $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
 
     if (!$auth->isAuthorized($remoteAddress)) {
@@ -153,6 +153,11 @@ try {
             'username' => (string) ($connection['username'] ?? ''),
             'password' => (string) ($connection['password'] ?? ''),
         ];
+        $executionJob = $store->read($jobId);
+        $requestedDatabases = array_values(array_map(
+            static fn (array $database): string => (string) ($database['name'] ?? ''),
+            is_array($executionJob['databases'] ?? null) ? $executionJob['databases'] : []
+        ));
         $secrets = array_values(array_filter([$connectionData['password']], static fn (string $value): bool => $value !== ''));
         $pathPolicy = new BackupPathPolicy($config['allowed_backup_roots'], dirname(__DIR__));
         $activeBackupPath = (new SettingsController($pathPolicy))->activePath((string) $config['backup_path']);
@@ -161,7 +166,7 @@ try {
             new DatabaseRepository(),
             new BackupService($activeBackupPath),
             $connectionData,
-            $config['excluded_databases']
+            $requestedDatabases
         );
 
         session_write_close();

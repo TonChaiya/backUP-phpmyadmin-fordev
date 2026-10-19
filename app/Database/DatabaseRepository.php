@@ -4,29 +4,38 @@ declare(strict_types=1);
 
 namespace BackupApp\Database;
 
+use DomainException;
 use mysqli;
 
 final class DatabaseRepository
 {
     /**
-     * @param array<int, string> $excludedDatabases
      * @return array<int, string>
      */
-    public function listDatabases(mysqli $connection, array $excludedDatabases): array
+    public function listDatabases(mysqli $connection): array
     {
-        $result = $connection->query('SHOW DATABASES');
-        $databases = [];
+        $policy = new AuthorizedSourcePolicy();
+        $allowed = $policy->authorizedSources();
+        $quoted = array_map(
+            static fn (string $database): string => "'" . $database . "'",
+            $allowed
+        );
+        $result = $connection->query(
+            'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA'
+            . ' WHERE SCHEMA_NAME IN (' . implode(', ', $quoted) . ')'
+        );
+        $found = [];
 
         while ($row = $result->fetch_row()) {
             $database = (string) $row[0];
 
-            if (!in_array($database, $excludedDatabases, true)) {
-                $databases[] = $database;
+            if (!$policy->isAuthorized($database)) {
+                throw new DomainException('catalog_scope_violation');
             }
+
+            $found[] = $database;
         }
 
-        sort($databases, SORT_NATURAL | SORT_FLAG_CASE);
-
-        return $databases;
+        return array_values(array_intersect($allowed, array_unique($found)));
     }
 }

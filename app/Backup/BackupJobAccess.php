@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BackupApp\Backup;
 
+use BackupApp\Database\AuthorizedSourcePolicy;
+
 final class BackupJobAccess
 {
     private const MAX_SESSION_JOBS = 20;
@@ -15,7 +17,8 @@ final class BackupJobAccess
      */
     public function select(array $selected, bool $all, array $known): array
     {
-        $known = array_values(array_unique(array_filter($known, 'is_string')));
+        $policy = new AuthorizedSourcePolicy();
+        $known = $policy->filterAuthorized($known);
 
         if ($all) {
             $result = $known;
@@ -23,7 +26,11 @@ final class BackupJobAccess
             $result = [];
 
             foreach ($selected as $database) {
-                if (is_string($database) && in_array($database, $known, true) && !in_array($database, $result, true)) {
+                if (!is_string($database) || !$policy->isAuthorized($database) || !in_array($database, $known, true)) {
+                    throw new BackupJobRequestException('ฐานข้อมูลที่เลือกไม่ได้รับอนุญาต', 422);
+                }
+
+                if (!in_array($database, $result, true)) {
                     $result[] = $database;
                 }
             }

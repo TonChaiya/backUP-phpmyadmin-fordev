@@ -31,8 +31,8 @@ test('Phase2JobAccess authorizes only session-owned unpredictable job IDs', func
 
 test('Phase2JobAccess restricts requested databases to the connected session allowlist', function (): void {
     $access = new BackupJobAccess();
-    assertSameValue(['beta', 'alpha'], $access->select(['beta', 'unknown', 'alpha', 'beta'], false, ['alpha', 'beta']));
-    assertSameValue(['alpha', 'beta'], $access->select([], true, ['alpha', 'beta']));
+    assertSameValue(['drugmap_db', 'autoprintdb'], $access->select(['drugmap_db', 'autoprintdb', 'drugmap_db'], false, ['autoprintdb', 'drugmap_db']));
+    assertSameValue(['autoprintdb', 'drugmap_db'], $access->select([], true, ['autoprintdb', 'drugmap_db']));
 
     $failed = false;
     try {

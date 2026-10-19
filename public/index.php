@@ -7,17 +7,11 @@ use BackupApp\Backup\BackupJobAccess;
 use BackupApp\Backup\BackupJobStore;
 use BackupApp\Database\ConnectionFactory;
 use BackupApp\Database\DatabaseRepository;
-use BackupApp\Http\Controller\AuthController;
 use BackupApp\Http\Controller\BackupController;
 use BackupApp\Http\Controller\SettingsController;
 use BackupApp\Http\Router;
 use BackupApp\Restore\BackupProvenanceIndex;
 use BackupApp\Restore\RestoreArtifactValidator;
-use BackupApp\Restore\RestoreJobAccess;
-use BackupApp\Restore\RestoreJobStore;
-use BackupApp\Restore\RestoreSafetyGate;
-use BackupApp\Restore\Integration\Job\RestoreIntegrationJobAccess;
-use BackupApp\Restore\Integration\Policy\RestoreIntegrationPolicy;
 use BackupApp\Support\Auth;
 use BackupApp\Support\BackupPathPolicy;
 use BackupApp\Support\DownloadAuthorization;
@@ -36,14 +30,19 @@ header('Referrer-Policy: same-origin');
 header("Content-Security-Policy: default-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'");
 
 $logger = new Logger((string) $config['log_path']);
-$auth = new Auth($config['auth']);
-$authController = new AuthController($auth);
+$auth = new Auth();
 $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+if (!$auth->isAuthorized($remoteAddress)) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo 'Direct loopback access only.';
+    exit;
+}
 $csrfToken = Security::csrfToken();
 
 function redirectTo(string $page = 'dashboard'): never
 {
-    $location = $page === 'login' ? 'index.php' : 'index.php?page=' . rawurlencode($page);
+    $location = 'index.php?page=' . rawurlencode($page);
     header('Location: ' . $location, true, 303);
     exit;
 }
@@ -53,36 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!Security::validateCsrf(isset($_POST['csrf_token']) && is_string($_POST['csrf_token']) ? $_POST['csrf_token'] : null)) {
         Flash::add('error', 'คำขอหมดอายุหรือไม่ถูกต้อง กรุณาลองใหม่');
-        redirectTo($auth->isAuthorized($remoteAddress) ? 'dashboard' : 'login');
-    }
-
-    if ($action === 'login') {
-        $password = isset($_POST['password']) && is_string($_POST['password']) ? $_POST['password'] : '';
-
-        if ($authController->login(Request::postString('username'), $password)) {
-            Flash::add('success', 'เข้าสู่ระบบสำเร็จ');
-            redirectTo('dashboard');
-        }
-
-        Flash::add('error', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
-        redirectTo('login');
-    }
-
-    if (!$auth->isAuthorized($remoteAddress)) {
-        http_response_code(403);
-        echo View::render('placeholder', [
-            'pageTitle' => 'Access denied',
-            'heading' => 'ไม่อนุญาตให้เข้าถึง',
-            'description' => 'ตั้งค่า Administrator authentication ก่อนใช้งานจาก LAN หรือ Remote',
-            'placeholderTitle' => 'Access denied',
-            'placeholderMessage' => 'ระบบอนุญาตโหมดที่ยังไม่ตั้งรหัสผ่านเฉพาะ direct loopback เท่านั้น',
-            'flashMessages' => Flash::pull(),
-        ], 'not-found', $config, false);
-        exit;
+        redirectTo('dashboard');
     }
 
     if ($action === 'logout') {
-        $authController->logout();
+        $auth->logout();
         Session::destroy();
         header('Location: index.php', true, 303);
         exit;
@@ -94,9 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $activeBackupPath = $settingsController->activePath((string) $config['backup_path']);
         $backupController = new BackupController(
             new ConnectionFactory($config),
-            new DatabaseRepository(),
-            new BackupService($activeBackupPath),
-            $config
+            new DatabaseRepository()
         );
 
         if ($action === 'connect') {
@@ -105,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $backupController->connect(
                 Request::postString('host', '127.0.0.1'),
                 $port,
-                Request::postString('username', 'root'),
+                Request::postString('username', 'backup_reader'),
                 $password
             );
             redirectTo('backup');
@@ -134,33 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirectTo('dashboard');
     } catch (Throwable $exception) {
         $logger->exception($exception, Security::connectionPasswordSecrets($_POST, $_SESSION));
-        Flash::add('error', 'ไม่สามารถดำเนินการได้ กรุณาตรวจสอบการตั้งค่าหรือติดต่อผู้ดูแลระบบ');
+        Flash::add('error', $action === 'connect'
+            ? 'เชื่อมต่อไม่สำเร็จ: ใช้บัญชี backup_reader ที่ 127.0.0.1:3306 และรหัส MySQL ของบัญชีนี้ หากไม่มีรหัสให้ติดต่อผู้ดูแล ระบบไม่รีเซ็ตหรือเพิ่มสิทธิ์อัตโนมัติ'
+            : 'ไม่สามารถดำเนินการได้ กรุณาตรวจสอบการตั้งค่าหรือติดต่อผู้ดูแลระบบ');
         redirectTo(in_array($action, ['connect', 'backup', 'backup_all'], true) ? 'backup' : 'settings');
     }
-}
-
-if (!$auth->isAuthorized($remoteAddress)) {
-    if (!$auth->isConfigured()) {
-        http_response_code(403);
-        echo View::render('placeholder', [
-            'pageTitle' => 'Authentication required',
-            'heading' => 'ต้องตั้งค่า Authentication',
-            'description' => 'Remote access ถูกปิดไว้โดยค่าเริ่มต้น',
-            'placeholderTitle' => 'อนุญาตเฉพาะ Direct Loopback',
-            'placeholderMessage' => 'คัดลอก config/local.php.example เป็น config/local.php แล้วตั้งค่า password hash ก่อนใช้งานจาก LAN',
-            'flashMessages' => Flash::pull(),
-        ], 'not-found', $config, false);
-        exit;
-    }
-
-    echo View::render('login', [
-        'pageTitle' => 'Login',
-        'heading' => 'Database Backup Manager',
-        'description' => 'เข้าสู่ระบบด้วยบัญชีผู้ดูแลที่กำหนดใน Local Configuration',
-        'csrfToken' => $csrfToken,
-        'flashMessages' => Flash::pull(),
-    ], 'login', $config, false);
-    exit;
 }
 
 try {
@@ -170,14 +120,13 @@ try {
     $backupService = new BackupService($activeBackupPath);
     $backupController = new BackupController(
         new ConnectionFactory($config),
-        new DatabaseRepository(),
-        $backupService,
-        $config
+        new DatabaseRepository()
     );
     $backupFiles = array_slice($backupService->listBackupFiles(), 0, (int) $config['max_backup_files']);
+    $backupProvenance = new BackupProvenanceIndex((string) $config['job_path']);
     $restoreArtifacts = new RestoreArtifactValidator(
         $activeBackupPath,
-        new BackupProvenanceIndex((string) $config['job_path'])
+        $backupProvenance
     );
     foreach ($backupFiles as &$backupFile) {
         $inspection = $restoreArtifacts->inspect((string) $backupFile['relative_path']);
@@ -194,6 +143,17 @@ try {
         $backupFile['restore_eligibility'] = $inspection['status'] === 'candidate'
             ? 'preflight_required'
             : 'ineligible';
+        $dumpMetadata = $backupService->mysqldumpHistoryMetadata(
+            (string) $backupFile['relative_path'],
+            $backupProvenance->find((string) $backupFile['relative_path'])
+        );
+        if ($dumpMetadata !== null) {
+            $backupFile = array_merge($backupFile, $dumpMetadata);
+            try {
+                (new \BackupApp\Import\ImportArtifactVerifier($activeBackupPath, (string) $config['job_path']))->inspect((string) $backupFile['relative_path']);
+                $backupFile['import_status'] = 'ready';
+            } catch (Throwable) { $backupFile['import_status'] = 'unsupported'; }
+        }
     }
     unset($backupFile);
 } catch (Throwable $exception) {
@@ -212,14 +172,6 @@ try {
 $route = Router::resolve(isset($_GET['page']) && is_string($_GET['page']) ? $_GET['page'] : null);
 $databases = $backupController->databases();
 $downloadAuthorization = new DownloadAuthorization($csrfToken);
-$restoreCandidates = array_values(array_filter(
-    array_map(static fn (array $file): array => [
-        'name' => (string) $file['name'],
-        'relative_path' => (string) $file['relative_path'],
-        'status' => (string) ($file['restore_status'] ?? 'not_checked'),
-    ], $backupFiles),
-    static fn (array $file): bool => $file['status'] === 'candidate'
-));
 
 foreach ($backupFiles as &$file) {
     $relativePath = (string) $file['relative_path'];
@@ -231,13 +183,10 @@ unset($file);
 $common = [
     'csrfToken' => $csrfToken,
     'flashMessages' => Flash::pull(),
-    'authConfigured' => $auth->isConfigured(),
 ];
 $connectionData = $backupController->connectionData();
 $backupJobAccess = new BackupJobAccess();
-$restoreJobAccess = new RestoreJobAccess();
 $recentBackupJobs = [];
-$recentRestoreJobs = [];
 
 try {
     $backupJobStore = new BackupJobStore((string) $config['job_path']);
@@ -249,19 +198,13 @@ try {
         }
     }
 
-    $restoreJobStore = new RestoreJobStore((string) $config['restore_job_path']);
-    foreach (array_slice($restoreJobAccess->ownedJobIds(), 0, 5) as $jobId) {
-        try {
-            $recentRestoreJobs[] = $restoreJobAccess->publicView($restoreJobStore->read($jobId));
-        } catch (Throwable) {
-            // Stale or corrupt historical entries are omitted from presentation.
-        }
-    }
 } catch (Throwable $exception) {
     $logger->exception($exception, Security::connectionPasswordSecrets([], $_SESSION));
 }
 
-$restoreSafety = (new RestoreSafetyGate())->evaluate();
+$importArtifacts = $route['name'] === 'import'
+    ? (new \BackupApp\Import\ImportArtifactVerifier($activeBackupPath, (string) $config['job_path']))->catalog()
+    : [];
 $pageData = match ($route['name']) {
     'dashboard' => [
         'pageTitle' => 'Dashboard',
@@ -272,11 +215,10 @@ $pageData = match ($route['name']) {
         'latestBackupLabel' => isset($backupFiles[0]) ? date('Y-m-d H:i', (int) $backupFiles[0]['modified']) : 'ยังไม่มี',
         'isConnected' => isset($_SESSION['connection']),
         'recentBackupJobs' => $recentBackupJobs,
-        'restoreSafety' => $restoreSafety,
     ],
     'backup' => [
-        'pageTitle' => 'Backup',
-        'heading' => 'Manual Backup',
+        'pageTitle' => 'Export',
+        'heading' => 'Manual Export',
         'description' => 'เลือกหนึ่งฐาน หลายฐาน หรือทุกฐาน ระบบจะทำงานตามลำดับทีละฐาน',
         'connectionData' => $connectionData,
         'databases' => $databases,
@@ -286,7 +228,7 @@ $pageData = match ($route['name']) {
     ],
     'history' => [
         'pageTitle' => 'History',
-        'heading' => 'Backup History',
+        'heading' => 'Export History',
         'description' => 'ไฟล์ SQL ที่ระบบตรวจพบภายใต้ Storage Root ที่ได้รับอนุญาต',
         'backupFiles' => $backupFiles,
     ],
@@ -297,31 +239,20 @@ $pageData = match ($route['name']) {
         'activeBackupPath' => $activeBackupPath,
         'connectionData' => $connectionData,
         'isConnected' => isset($_SESSION['connection']),
-        'authMode' => $auth->isConfigured() ? 'configured' : 'loopback_only',
+        'authMode' => 'loopback_only',
         'runtimeInfo' => [
             'php_version' => PHP_VERSION,
             'environment' => PHP_OS_FAMILY,
         ],
     ],
-    'restore' => [
-        'pageTitle' => 'Restore',
-        'heading' => 'Restore Preflight',
-        'description' => 'ตรวจ provenance, SHA-256, SQL structure และ safety gates แบบ Fail-Closed โดยไม่มีการส่งคำสั่งไปยังฐานข้อมูล',
-        'restoreCandidates' => $restoreCandidates,
-        'selectedRestoreArtifact' => isset($_GET['artifact']) && is_string($_GET['artifact']) ? $_GET['artifact'] : '',
-        'activeRestoreJobId' => $restoreJobAccess->activeJobId(),
-        'recentRestoreJobs' => $recentRestoreJobs,
-        'restoreSafety' => $restoreSafety,
-        'pageScript' => 'assets/restore-jobs.js',
-    ],
-    'restore-integration' => [
-        'pageTitle' => 'Restore Integration',
-        'heading' => 'Restore Integration',
-        'description' => 'Offline proposal และ safety state สำหรับ Milestones 1–9 โดย Live execution ปิดอยู่',
-        'authorizedSources' => (new RestoreIntegrationPolicy())->authorizedSources(),
-        'activeIntegrationJobId' => (new RestoreIntegrationJobAccess())->owns((string) ($_SESSION['active_restore_integration_job_id'] ?? ''))
-            ? (string) $_SESSION['active_restore_integration_job_id'] : '',
-        'pageScript' => 'assets/restore-integration.js',
+    'import' => [
+        'pageTitle' => 'Import',
+        'heading' => 'Import into a new database',
+        'description' => 'ตรวจไฟล์จริงและใช้ mysql.exe เฉพาะฐานทดลองใหม่ที่มีสิทธิ์แยกจากฐานต้นทาง',
+        'importArtifacts' => $importArtifacts,
+        'selectedImportArtifact' => is_string($_GET['artifact'] ?? null) ? $_GET['artifact'] : '',
+        'activeImportJobId' => is_string($_SESSION['local_import_active'] ?? null) ? $_SESSION['local_import_active'] : '',
+        'pageScript' => 'assets/local-import.js',
     ],
     default => [
         'pageTitle' => 'Page not found',

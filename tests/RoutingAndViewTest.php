@@ -9,7 +9,7 @@ test('router resolves every Phase 1 page through an allowlist', static function 
     $expected = [
         'dashboard' => 'dashboard',
         'backup' => 'backup',
-        'restore' => 'restore',
+        'import' => 'import',
         'history' => 'history',
         'settings' => 'settings',
     ];
@@ -37,14 +37,14 @@ test('shared layout renders consistent navigation and marks the active page', st
         'description' => 'Phase 2',
         'placeholderTitle' => 'ยังไม่เปิดใช้งาน',
         'placeholderMessage' => 'เตรียมไว้สำหรับ Phase ถัดไป',
-    ], 'restore', ['app_name' => 'Backup Manager']);
+    ], 'import', ['app_name' => 'Backup Manager']);
 
-    foreach (['Dashboard', 'Backup', 'Restore', 'History', 'Settings'] as $label) {
+    foreach (['Dashboard', 'Export', 'Import', 'History', 'Settings'] as $label) {
         assertContainsValue($label, $html);
     }
 
     assertContainsValue('aria-current="page"', $html);
-    assertContainsValue('page=restore', $html);
+    assertContainsValue('page=import', $html);
 });
 
 test('backup view never renders the server-side database password', static function (): void {
