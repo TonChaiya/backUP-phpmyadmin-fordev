@@ -1,5 +1,243 @@
 # Change-Based Test Baseline
 
+## 2026-10-19 — Final architecture documentation and authorized Git synchronization
+
+This round documents/publishes the completed local working tree; it does not reimplement or re-test the unchanged Export/Import engines. Added root AGENTS.md and docs/ARCHITECTURE.md (20 implemented-architecture sections,3 Mermaid diagrams), expanded README installation/configuration/operation/maintenance and linked retained guides. Documents explicitly distinguish native completion, normal schema/count comparison, separate historical exact live-source values and NOT VERIFIED SQL-snapshot fidelity. Manifestless legacy download compatibility, plaintext private sessions/temporary option files, pinned local identity and concurrent DDL/process-crash limits are not hidden.
+
+Repository hygiene: .gitignore excludes all storage children except storage/.htaccess, SQL/paired manifests, job/session/log/temp/private-key/local-config and binary/build files. Removed **14 formerly tracked SQL/manifest files from the index only**, not disk; existing local user data is preserved. Old Git commits still contain historical artifacts; no history rewrite or claim of historical sanitization. Removed obsolete architectures remain absent. Current staged source tree contains107 files before this evidence update; no app runtime dependency was added.
+
+Fresh checks (not old-suite reruns): inspected **63 retained PHP files**, autoloaded **47 declarations**, resolved **41 explicitly referenced application classes**, verified **13 documented method references** without bootstrap/DB. Checked Markdown links in maintained docs and3 Mermaid source blocks (not a claim of visual Mermaid rendering). Reviewed actual staged paths/diff and scanned all72 added/modified blobs with offline credential/private-key/token/URI/binary/path checks. Four initially flagged test literals were individually confirmed synthetic sentinels; no real credential finding and no secret values printed. This bounded pattern/manual review is not a guarantee against every possible unknown secret. No dedicated gitleaks/trufflehog tool is installed.
+
+Only active access-rule change this round: deny new AGENTS.md via root FilesMatch. Actual Apache GET **AGENTS.md403**, **docs/ARCHITECTURE.md403**, rejected before PHP/bootstrap/session/SQL. No original application-page smoke or live clients were rerun. Two pre-existing newly staged PHP files had trailing blank EOF removed; PHP syntax **2/2 PASS**; no behavioral change. Staged and working-tree whitespace checks passed after those formatting fixes. Final maintained-document link check **18/18 valid**;3 Mermaid source blocks included, visual rendering not separately tested.
+
+Protected-data check: **66/66 files unchanged** by exact inventory, SHA-256, size and LastWriteTimeUtc across this task, including all local storage files and config/local.php. Independent read-only architecture/index review found no Critical/Important/Minor issue; it did not claim live behavior or remote publication. Review branch/remote identity matched the explicit task; safe fetch found no unexpected changes and main was an ancestor. Real synchronization results are reported only after actual pushes.
+
+Reused unchanged evidence only: Export live4/4, focused39/39, mysql.exe exit0, effective schema9/9, current-source exact values9/9, finalization12/12 and cleanup50PASS/1SKIP. Historical Import job remains failed; overall acceptance PARTIAL and SQL-snapshot data NOT VERIFIED. No full regression, MySQL connection, source/target mutation, credentials/accounts/grants change, Backup/Import/Restore execution or Laragon/Windows/service action. Publication status/commit IDs are reported from actual Git results, not preclaimed here.
+
+---
+
+## 2026-10-19 — Authorized project cleanup (latest)
+
+**Offline cleanup completed; no new Live Export/Import acceptance claimed.** Current working-tree graph traced from public/index.php, job.php, import-job.php, download.php through bootstrap/router/controllers/views/adapters/stores/locks. Deleted **960 exact obsolete files / 257,105,758 bytes**: unreachable custom Restore/Integration/typed SQL/privilege/receipt/secret framework, DPAPI/.NET sources and build outputs, signing/dedicated Apache tooling/templates/packages, dead HTTP endpoints/views/scripts, one-off reset wrappers and abandoned tests/design/runbooks. Removed related script/rewrite registrations, unused direct BackupController backup method, dead index candidate collection and old login/config remnants. Official Export/Import SQL behavior and current locks/integrity/download implementations were not rewritten.
+
+Retained **48 app files**, including Restore/BackupProvenanceIndex (actual Import/History origin dependency) and a metadata-only RestoreArtifactValidator for old History records; removed its unused custom Restore preflight. Retained current Import verification tools/helpers/evidence. Legacy runtime path names and existing configuration/storage remain compatible without migration. Current README/local guide/architecture document replace abandoned phase instructions. Historical TEST_BASELINE entries and acceptance report remain unchanged below; references to retired files in those entries are historical evidence, not current instructions.
+
+Fresh change-based checks: **50 PASS / 0 FAIL / 1 SKIP, 51 selected**, not full regression: CleanupDependencyTest3, ImportSchemaComparisonTest3, SecurityFoundationTest10, retained current Phase4UiTest8, RoutingAndViewTest4, LocalImportArtifactTest3, LocalManagerPresentationTest5, LocalImportUiTest2, Phase2JobApiAndUiTest5, StorageAndDownloadTest7 PASS +1 SKIP. Skip: Windows isolated symlink creation unavailable; no symlink-escape PASS fabricated. Cleanup dependency test initially failed with obsolete graph still present; after deletion/reference pruning all three cleanup checks pass. Updated CLI-boundary test no longer invokes the retired reset tool; malformed JSON correctly expects the retained inspector's existing safe generic error. No change to production SQL/verification semantics.
+
+Changed PHP syntax **14/14 PASS**; git diff --check PASS. No JavaScript change, prior presentation JS5/5 reused. Actual isolated child entrypoint smoke uses copied current source and temporary runtime root, disables mysqli_init: Dashboard/Export/Import/History/Settings **200**, unknown page **404**, wrong-method job API **405**, Import CSRF **419**, unauthorized Download **404**. All nine cases executed without MySQL or original runtime writes; not represented as fresh Apache HTTP tests. Previously recorded Apache results are reused. Autoload declarations and explicit application namespace references resolve; runtime/test scan found no references to deleted classes/files.
+
+Before/after exact inventory + SHA-256 + size + LastWriteTimeUtc matched for **66 protected files**, including every original storage file and config/local.php; no new protected file or unexpected deletion. **960/960** deletion inventory entries absent; remaining reviewed application/source/tool/test/docs inventory **104 files** (excludes protected runtime/local config). Reparse checks performed before cleanup; no symlink/junction following. Original SQL, manifests, jobs, acceptance JSON, ownership, sessions/logs/locks/private files and databases/accounts preserved. No MySQL connection, services/Windows/Laragon server-configuration/ACL change, credential mutation, Backup/Restore execution, commit/push/tag/release or history rewrite. Application source routing/default templates were intentionally simplified as described above.
+
+Reused acceptance only: Export live4/4, focused39/39, mysql.exe exit0, effective schema9/9, live-source values9/9 and finalization12/12. Existing failed Import job remains failed; separate acceptance remains PARTIAL and SQL-snapshot values NOT VERIFIED. Independent read-only cleanup review: no Critical/Important/Minor findings; no missing retained dependency. Reviewer did not claim live DB/Apache behavior or independently re-hash private files. **CLEANUP PASS** within offline scope. Detailed KEEP/DELETE/REVIEW reasoning, exact 960 deleted and 104 retained file paths, source graph and tracked Git diff --stat: docs/PROJECT_CLEANUP.md.
+
+---
+
+## 2026-10-19 — Local manager UI/status finalization (latest)
+
+**Finalization implemented and focused UI checks passed. Overall historical Import snapshot fidelity remains PARTIAL / NOT VERIFIED.** This round performs no MySQL connection, database mutation, live Export/Import or repeated live schema/data comparison. Existing Laragon, engines, allowlist, locks, CSRF/session/ownership, storage and downloads remain unchanged.
+
+Import presentation now separates native execution, schema, exact live-source data, SQL-snapshot data and pending/failed/partial verification. The read-only ImportResultPresentation adapter binds existing private review JSON to exact job/source/target/artifact path/bytes/SHA-256; rejects malformed/foreign/incomplete proof; never promotes current-source proof or row counts to snapshot fidelity. All current results keep snapshot_data=not_verified. Native succeeded jobs show completion, not Fully verified. Failed comparison jobs without a valid later review remain verification-failed; a valid later review may show partial verification without changing recorded_status=failed. Full DDL evidence is required before presenting schema verified. Existing evidence reads are bounded to 1 MiB/file, at most 100 candidate review files; no SQL file hashing on polling.
+
+Observed actual stored-job mapping, read-only filesystem only: job `b2197f1be82de698bd6678a09e1507c7` presents **recorded_status failed / execution completed / schema verified / live_data verified / snapshot_data not_verified / verification partial**, reviewed_at 2026-10-19T02:51:02+00:00. This reuses the earlier report; it is not a fresh MySQL observation. Job/history/evidence were not rewritten. Wrong-session status cannot obtain these review details.
+
+Export page explicitly states InnoDB base-table structure + rows in official mysqldump SQL format, excluding Views, Triggers, Stored procedures/functions, Events and Non-InnoDB engines; no full-database claim or engine change. Import/Export/Settings distinguish MySQL credentials from website login and explain missing credentials without automatic Reset/provision/GRANT. History distinguishes artifact metadata from Import verification. Existing navigation/design/components/data hooks/API URLs remain intact; raw event/verification JSON is no longer dumped into Import UI.
+
+Independent focused review completed for the named finalization files. Its sole P2 (disappearing request rejection) was fixed and rechecked; final reviewer verdict: no further important findings in the narrow presentation scope. This is not an independent review of the unchanged engines or live data fidelity.
+
+### Fresh change-based results
+
+| Check | Actual result |
+|---|---|
+| Initial presentation TDD | **0/5 RED**, missing class/status facets |
+| New LocalManagerPresentationTest | **5/5 PASS**, zero skipped: result scopes, immutable history, no snapshot upgrade, binding/completeness, bounded review selection, safe messages and affected views |
+| Directly affected LocalImportUiTest | **2/2 PASS**, zero skipped: preserved forms/hooks/API protection and script wiring only |
+| Node actual UI-script behavior in fixture DOM | **5/5 PASS**: independent facets + forced snapshot NOT VERIFIED, pending controls hidden, safe API/network errors, rejected execution guidance retained after status refresh with password field cleared; no automatic prepare/execute |
+| Export credential error HTTP regression | **RED missing specific guidance -> GREEN HTTP 200** after POST rejection/redirect; wrong synthetic username is rejected by existing MysqldumpCommand::assertConnection before ConnectionFactory, no DB connection; synthetic password absent response |
+| Changed PHP syntax | **8/8 PASS** |
+| Production/test JS syntax | **2/2 PASS** |
+| Git diff whitespace check | PASS for changed tracked files |
+
+Fresh automated focused aggregate: **12/12 PASS** (PHP 7 + JS 5), zero skipped. Additional observed RED-to-GREEN boundaries: incomplete/unexplained DDL could initially display schema verified, now rejected; failed verification without a later review initially showed partial, now failed. Independent focused review found one P2: status refresh erased a curated pre-execution rejection message. Added actual-script regression failed before the fix, passed after preserving the request error across status reconciliation. Network fallback now distinguishes an unavailable response from proven execution failure and instructs checking status without retry. No Export engine, Import execution, completed live comparison, full regression/stress or unrelated tests rerun.
+
+Actual Apache changed routes **Export/Import/History/Settings 200**. Import Browser rendering verified current session's existing awaiting_provisioning job: execution not started, schema/live values unverified, snapshot NOT VERIFIED, verification pending, execution controls hidden. Browser also verified updated Export scope and Settings credential copy with existing design. Node fixture exercises completed/reviewed-failure rendering; real historical reviewed job was mapped via actual persisted JSON through the presentation class, not falsely claimed as a browser-owned job. Current viewport rendering was checked; no claim of a fresh full desktop/tablet/mobile responsive matrix.
+
+Actual changed API error paths: foreign-session existing job status **404**, curated message present, no job/review exposed; invalid-CSRF request **419**, curated reload guidance. No prepare or execute action passed authorization/validation in these checks; no new Import job or database was created. Existing Dashboard/loopback enforcement/secure Download/Artifact hashes and other unchanged security checks reuse their earlier evidence.
+
+Reused, not rerun: Live Export **4/4**, Export focused **39/39**, actual mysql.exe Import exit **0**, effective schema **9/9**, exact current-source/target value comparison **9/9 / 63 rows**, five-page HTTP evidence and protected SQL/download evidence. Independent SQL-snapshot value comparison remains **NOT VERIFIED**; full database objects/default collation equivalence is not claimed. No manual failed-to-succeeded transition, credentials in reports/JSON, credential reset/account/GRANT operation, protected/unauthorized database access, services/config/deployment change, backup/history deletion or Git commit/push/tag/release.
+
+Files in this finalization (14): `app/Import/ImportResultPresentation.php`; `public/import-job.php`; `public/index.php`; `public/assets/local-import.js`; `views/pages/import.php`; `views/pages/backup.php`; `views/pages/history.php`; `views/pages/settings.php`; `tests/LocalManagerPresentationTest.php`; `tests/js/local-import-presentation.test.js`; `README.md`; `docs/LOCAL_USER_GUIDE.md`; `docs/LOCAL_IMPORT_ACCEPTANCE_2026-10-19.md`; `TEST_BASELINE.md`. Earlier unrelated working-tree changes are preserved, not attributed here. Active runtime/retired historical paths are documented in the short local user guide; no historical modules or artifacts were removed merely for tidiness.
+
+---
+
+## 2026-10-19 — Final-local-manager continuation and authorized credential reset
+
+User explicitly authorized one ALTER USER password reset for `local_import_bd6678a09e1507c7@localhost`, preserving exact grants/target/data, followed by existing-target acceptance only. Interactive administrator prompt was used, no password arguments/environment/source/logs; no credential search in browser sessions or Git. Reset succeeded at **09:38:12 +07:00**. Private reset receipt verifies MySQL 8.4.3 / port 3306 / UUID `198f474e-899b-11f1-903d-f0761cf4041a`, unchanged exact SELECT/INSERT/CREATE/REFERENCES target grants and successful generated-account login. New password delivered to Windows Clipboard only. No new target/account, grants, SQL Import/Export, source writes or cleanup. A receipt guard prevents repeat reset.
+
+Actual read-only verification reached `metadata_0_partitions` then failed with **1054**: the inspection SELECT included nonexistent ENGINE in INFORMATION_SCHEMA.PARTITIONS. ENGINE remains checked via TABLES. Corrected the query to MySQL 8.4's documented columns. New in-memory SQLite SQL-column fixture (not MySQL; no external database) reproduced **RED no such column ENGINE -> GREEN**. This is a fixture check, not a claim of a completed MySQL schema/data inspection. Safe failure evidence `b2197f1be82de698bd6678a09e1507c7.acceptance-failed-20261019-024100-db6a1aa4.json` retained under private runtime job storage.
+
+Subsequent actual read-only evidence at **09:47:17 +07:00**: `b2197f1be82de698bd6678a09e1507c7.acceptance-failed-20261019-024717-97f1fb2a.json` proves **effective metadata equality for all nine tables**, and explains **all eight differing SHOW CREATE TABLEs**, 28 column lines total, solely explicit CHARACTER SET utf8mb4 with equal effective utf8mb4_unicode_ci. Differences by table: dose_change_audit 6, flag_reconcile_runs 1, flag_reconcile_settings 1, queue 6, cleanup_security 1, facility_settings 3, herbal_compress_history 9, network_access_settings 1; visit_flag_audit raw DDL identical. All other DDL characters/metadata/index/constraint/default/options agree. Exact current source/target row-multiset comparison completed for the first three tables (4/4/1 rows), then stopped fail-closed on ENUM. This is partial value verification, not a data PASS for the remaining tables.
+
+ENUM/SET handling was added to the read-only comparison after an observed regression **RED undefined valueExpressions -> GREEN**. Compare text bytes **and** exact UNSIGNED ordinal/bitmask bytes, preserving SQL NULL, empty member vs error index 0, 64-bit mask precision and duplicates; it does not execute or rewrite SQL artifacts. FLOAT/DOUBLE/JSON/spatial/unknown conversions remain unsupported. The inspector now uses the interactively authenticated administrator for both fixed-schema READ ONLY inspection connections and attests the dedicated account's unchanged exact grants separately; the application's actual Import runner still requires its dedicated account. This avoids reset repetition when a transient Clipboard credential was overwritten. No source/log/browser-session/Git password recovery or root Import fallback was used.
+
+**Completed corrected live inspection: 2026-10-19 09:51:02 +07:00.** Separate evidence `storage/restore-jobs/local-import/b2197f1be82de698bd6678a09e1507c7.acceptance-20261019-025102-a0534352.json`, actual file SHA-256 **9181636186ae9641e85df07f429719cadc6cea8935883613d8b212dc89d742e2**. Verified native MySQL 8.4.3/3306/expected UUID, interactively authenticated root@localhost roles NONE/partial_revokes 0, exact dedicated Import grants unchanged. Both connections were server-enforced READ ONLY repeatable-read snapshots; root was used solely for this fixed-scope verification, not Import execution. All 9 tables' effective metadata and every DDL difference are proven equivalent at the existing-table level. Exact sorted byte row multisets, not hashes/counts alone, matched **9/9 tables, 63/63 rows**: 4,4,1,50,1,1,1,1,0 in table order shown in the earlier live result. Includes actual ENUM text plus ordinal; no data values or credentials emitted. Post-inspection schema snapshots matched pre-inspection snapshots in measured dimensions.
+
+**Current source/target exact equivalence PASS; overall final acceptance PARTIAL.** Historical SQL snapshot row-value equivalence remains NOT VERIFIED: the artifact is verified, but no supported independent native-dump value decoder/historical row-value evidence is available. Direct offline file inspection found 8 native INSERT statements, none with explicit column lists; the archived InsertRowsParser requires explicit column lists. That inspection did not execute SQL or claim a validated general parser. Do not reactivate/build a custom Import engine or re-import to invent proof. Database defaults also differ: source utf8mb4_general_ci, target utf8mb4_0900_ai_ci (charset utf8mb4 both); existing table/column defaults/collations and data compare equal. No database-default ALTER was authorized/performed. This is not full database-object/default equivalence.
+
+Final actual History/authorized Download HTTP **200/200**, downloaded SQL **20,601 bytes**, hash `0fafc77e5bcff9d73112fab6033c5b388a7c6d58a69449007b0d039dbdbfd4bd` matches original manifest/job. No source data read was needed for this download check. The original Import job remains failed; separate acceptance evidence records partial outcome without manual job edits or fabricated succeeded transition. No re-export, re-import, new database/account, GRANT mutation, source/target data/schema write or cleanup after the single approved credential reset.
+
+Active comparer change: effective metadata equality remains mandatory; allow only the observed exact explicit/implicit CHARACTER SET text difference when full column metadata, charset/collation and every other DDL character agree. Structural defaults/types/index/constraint/partition changes and source drift still fail. TDD comparer regression **1/2 RED -> 2/2 GREEN**, plus CLI rejection test added afterwards. Shared helper now resides in app/Import/EffectiveSchemaComparison.php; read-only tool delegates to it. No SQL dump rewriting or custom Import engine. Existing failed job was not reconciled or edited.
+
+Fresh focused results: **ImportSchemaComparisonTest 3/3 PASS**, **Read-only acceptance 5/5 PASS**, zero skipped; PHP syntax **7/7 PASS**, PowerShell parse **0 errors**. These eight checks are new/changed comparer, lossless row-multiset/ENUM helper, bounded-memory/type rejection, MySQL PARTITIONS column fixture and safe unauthorized/malformed CLI input only. Previous Export **4/4 live and 39/39 focused** and official mysql.exe exit 0 remain reused evidence, not repeated execution. No full regression, stress test or unrelated suites.
+
+Actual existing Apache HTTP routes Dashboard/Export/Import/History/Settings **200**, no application login form. Actual non-loopback interface request with forged X-Forwarded-For/Forwarded loopback headers **403**. Direct app/bootstrap.php, tools/reset-existing-import-password.php and selected SQL artifact URLs **403**. No Apache/listener/configuration change was made to obtain these results. Other unchanged CSRF/session/download checks reuse preceding evidence.
+
+Historical artifact is trustworthy as SQL bytes/provenance; what is missing is a supported independent decoding/comparison of that artifact's row values (its original manifest records nine tables but no row-value digest, rows=null). Current live-source equivalence alone cannot substitute for snapshot equivalence. Do not report snapshot-data PASS without that missing comparison, or mislabel source drift as Import failure. Overall remains **PARTIAL** despite the completed corrected live current-source/target inspection, because historical snapshot-value proof remains missing. Original target/job/history/backups retained; no protected/unauthorized database access, commit/push/tag/release or new phase.
+
+Details, exact files and limitations: docs/LOCAL_IMPORT_ACCEPTANCE_2026-10-19.md. Earlier credential-missing entries remain historical; they are superseded only by the actual reset evidence, not by a claimed complete acceptance pass.
+
+---
+
+## 2026-10-19 — Existing-target exact acceptance inspection (latest)
+
+**PARTIAL / LIVE VERIFICATION BLOCKED.** Only existing target `local_import_20261018_b2197f1be82de698` is in scope. Actual current reader authentication and native server/exact-grant verification succeeded; target dedicated-account connection failed with **1045**, before schema/data reads from that target. User confirmed no saved target password. No reset, grant change, root fallback, Import retry, CREATE/DROP, source write or other-database access occurred. The supplied phpMyAdmin tree confirms the existing nine-table target only; it does not prove effective schema or exact data equality.
+
+Prepared separate CLI-only read-only inspector `tools/verify-existing-import.php` and pure helpers `tools/verification/LocalImportAcceptance.php`. Active Import executor/comparison/state transitions were not changed. The inspector requires exact job/session/ownership/artifact/server/account/grants; bounded stdin; shared lock; server-enforced READ ONLY consistent snapshots; effective INFORMATION_SCHEMA metadata; exact evidence for every DDL difference; sorted lossless byte row-multiset comparison including duplicates, with explicit row/byte/time/type bounds. Unsupported conversions or unexplained DDL fail closed. No data/secret output. See docs/LOCAL_IMPORT_ACCEPTANCE_2026-10-19.md for scope and historical-backup limitations.
+
+New focused synthetic tests: initial **0/3 RED** (missing helpers), final **3/3 PASS**, zero skipped. Cases cover metadata-proven explicit charset difference, actual type/nullability/partition and collation mismatch rejection, exact row-multiset ordering/duplicates, NULL vs empty, NUL/0xFF bytes, Thai/escaping, large exact numeric strings, microsecond timestamps, unsupported type rejection and row/byte overflow. These are helper checks, **not live MySQL data fidelity proof**. New PHP syntax checks **3/3 PASS** and baseline git diff whitespace check passed. Final read-only filesystem check confirms job failed with the original mismatch error and artifact still 20,601 bytes with unchanged SHA-256. No Export/Import execution tests, full regression or unrelated suites rerun.
+
+Full explanation of all eight DDL definitions, complete effective metadata comparison, all live row values/duplicate multiplicities and backup-snapshot value equality remain **NOT VERIFIED**. Earlier 9-table/63-row observations are reused historical evidence, not new PASS results. Job remains **failed**, original history and ownership evidence preserved; no manual JSON edit or unsupported failed-to-succeeded transition. No new independent acceptance PASS exists.
+
+No Git commit/push/tag/release, Windows/Apache change, new resources, re-import or cleanup. Missing credentials are the immediate blocker; the existence of the database is not in dispute.
+
+---
+
+## 2026-10-19 — Authorized single live Import acceptance
+
+**PARTIAL: native SQL Import completed; strict verification FAILED.** This supersedes only the pending authorization status in the preceding implementation report. Do not count this as a successful Import acceptance or change the persisted failed job to succeeded.
+
+Human explicitly authorized creation of target `local_import_20261018_b2197f1be82de698` and account `local_import_bd6678a09e1507c7@localhost`, exact SELECT/INSERT/CREATE/REFERENCES grants on that target, and one autoprintdb artifact Import. No other target/account was created. The unrelated browser fixture job was not provisioned.
+
+Live flow through existing Laragon Apache: recover the same legitimate session-owned job, authenticate the existing reader through the normal Export connection POST, check job awaiting_provisioning, run the authorized external provisioning CLI with administrative password on stdin, then POST Import execute with CSRF, IMPORT confirmation and per-target credential. Administrative connection was used only for exact server/collision/account/grant provisioning checks, CREATE DATABASE, CREATE USER and the exact escaped GRANT. SQL Import ran under the new dedicated account, never root or backup_reader. Password delivered to Windows Clipboard, not source/config/job/log/report; no credential was reset.
+
+Verified identity before mutations and again under actual runtime accounts: MySQL Community **8.4.3**, endpoint **127.0.0.1:3306**, native UUID `198f474e-899b-11f1-903d-f0761cf4041a`, roles NONE, partial_revokes 0; reader CURRENT_USER backup_reader@localhost; target CURRENT_USER exact generated account. Provisioning required exact schema/account absence; no IF NOT EXISTS or prefix matching. Actual grants matched USAGE plus only SELECT, INSERT, CREATE, REFERENCES on the escaped exact target. Ownership journal records exact names, job ID, server UUID, creation evidence/timestamps. Runner confirmed target empty and acquired shared operation lock before execution.
+
+Job `b2197f1be82de698bd6678a09e1507c7`: creation evidence **2026-10-19 09:03:35 +07:00**; running **09:03:36**; finished **09:03:38**. Official pinned mysql.exe returned **exit 0**, no stdout/stderr diagnostic failure; code then obtained target/source snapshots and rejected comparison with `import_target_schema_or_rows_mismatch`. This follows actual runner control flow, not an inference that HTTP 200 means Import success. HTTP execute/status transport completed; persisted status endpoint **200**, actual job **failed**.
+
+Read-only diagnosis under existing SELECT-only reader and exact target account found:
+
+| Table | Source rows | Target rows |
+|---|---:|---:|
+| autoprint_dose_change_audit | 4 | 4 |
+| autoprint_flag_reconcile_runs | 4 | 4 |
+| autoprint_flag_reconcile_settings | 1 | 1 |
+| autoprint_queue | 50 | 50 |
+| cleanup_security | 1 | 1 |
+| facility_settings | 1 | 1 |
+| herbal_compress_history | 1 | 1 |
+| network_access_settings | 1 | 1 |
+| visit_flag_audit | 0 | 0 |
+
+**9 tables / 63 rows** on each side; successful COUNT reads establish target data accessibility. Tables/columns/indexes/foreign keys/referential actions/check metadata matched in the collected snapshots. Raw SHOW CREATE TABLE strings differed for **8** tables. Concrete observed difference: source cleanup_security.password_hash declaration `varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL`, target `varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL`. This demonstrates a redundant charset-rendering difference in one definition; it does not prove that every raw DDL difference is semantically harmless. No ad-hoc SQL replacement, parser change, comparison relaxation, schema ALTER or success fabrication was performed. All raw DDL must remain fail-closed until a separately justified comparison improvement is implemented/tested. The runner's source-before/source-after snapshots matched in measured dimensions (otherwise it raises the distinct source-changed error first); full data-value equality and exclusion of same-count external writes remain NOT VERIFIED.
+
+Selected SQL file remains **20,601 bytes**, SHA-256 `0fafc77e5bcff9d73112fab6033c5b388a7c6d58a69449007b0d039dbdbfd4bd`; actual post-run hash matches existing manifest/job. Zero actual new import-password matches found in inspected job/log/ownership files. Original artifact was not rewritten. The temporary read-only diagnostic source created for this specific inspection was removed after use; it did not execute SQL writes. No application source fix or old test rerun was needed in this acceptance round.
+
+Target and account remain present for explicit reconciliation; failed job/ownership journal preserved. **No retry, DROP, source writes, protected/unauthorized-source access, port 3333 connection, service restart, Windows/Apache/config change, Git commit/push/tag/release.** Existing listeners retain Apache PID 4024/8081 and MySQL PID 16220/3306. Readiness: Export retains prior 4/4 evidence; live Import execution demonstrated, full Import acceptance still **BLOCKED by strict raw-DDL comparison**. No additional persistent actions are automatically authorized.
+
+---
+
+## 2026-10-19 — Local Export / Import Manager (current implementation)
+
+Status: **OFFLINE IMPLEMENTED / LIVE IMPORT BLOCKED — exact target/account authorization pending**. No MySQL connection, account provisioning, CREATE DATABASE, GRANT, SQL Import, source writes or cleanup occurred in this round. The four successful live Exports in the next historical entry are reused evidence, not fresh passes or Import proof.
+
+Scope: direct-loopback access without application login; existing official Export retained; new trusted-artifact Import using pinned official mysql.exe, generated exact target/account, private ownership evidence, shared operation lock, explicit session-owned confirmation and safe persisted results. Historical custom Restore endpoints now return 410; their implementation files remain retained. No new custom SQL parser/executor.
+
+Fresh focused results observed during implementation:
+
+| Check | Result | Evidence scope |
+|---|---|---|
+| LocalImport tests, final run | **18/18 PASS**, zero skipped | Artifact provenance/hash/size/profile, tamper/truncation/path rejection, generated scope/exact grants, ownership/session isolation, shared lock, lifecycle/no retry/interrupted recovery, comparison mismatch, pinned binary/options, stdin streaming, native diagnostic suppression, local access and UI/API wiring |
+| Directly affected SecurityFoundationTest | **10/10 PASS** | Loopback-only authorization, CSRF/session/download foundation |
+| Directly affected RoutingAndViewTest | **4/4 PASS** | Active routes/navigation |
+| Mysqldump focused suite | **18/18 PASS** | Shared process optional file stdin and generated credential username support; existing reader defaults preserved; no repeat live Export |
+| Phase2JobApiAndUiTest | **5/5 PASS** | Existing Export access/CSRF/ownership hooks affected by shared access changes |
+| Selected Phase4Ui tests | **6/6 PASS** | Shared layout, Dashboard, Settings, History only; not the full historical UI suite |
+
+Unique focused aggregate: **61/61 PASS**. The first aggregate was 60/60; orphaned Import recovery was subsequently added with an observed failing test, implemented and passed; final LocalImport rerun confirms all 18 tests. No full regression or unrelated Restore/DPAPI/deployment suite. Other observed RED-to-GREEN fixes: missing native-client stdout rejection, missing Import script in shared layout allowlist, initial absent components, import account option validation and file-backed stdin support.
+
+Actual existing Apache HTTP checks (no database connection): Dashboard/Export/Import/History/Settings **200**; Import prepare **201** with actual selected artifact full integrity verification; missing CSRF **419**; browser-supplied target override **409**; foreign-session job status **404**; old Restore APIs **410**; direct SQL storage and app/bootstrap.php **403**. Request via the machine's non-loopback address with forged forwarding headers **403**; direct IPv6 loopback Import page **200**. CSRF initially returned 500 because PHP/Apache did not recognize the 419 reason phrase; explicit HTTP status line fixed the actual check to 419. Browser rendering exposed the initially missing Import JS allowlist entry; fixed and verified generated-target/status rendering and hidden execution controls before provisioning. No real Import button execution or MySQL validation is claimed.
+
+Final changed PHP syntax checks: **32/32 PASS**. Updated JS passed Node --check; git diff --check reported no whitespace errors (Git emitted existing LF-to-CRLF conversion warnings). Browser checks establish actual desktop route/control rendering; tablet/mobile visual revalidation is **NOT VERIFIED** (no broad layout redesign).
+
+Pinned mysql.exe SHA-256: `87a1539a9bfec68bfb4a66b7e5d0079418ed8c0084cb22645e9fc3145aad3797`; actual no-connection version/help option checks passed for MySQL 8.4.3 Win64. Selected autoprintdb file remains 20,601 bytes, SHA-256 `0fafc77e5bcff9d73112fab6033c5b388a7c6d58a69449007b0d039dbdbfd4bd`. Offline inspection found zero anchored CREATE DATABASE/USE directives in that concrete file. This observation is not a general SQL parser or arbitrary-dump safety claim: acceptance requires exact trusted official producer/profile/options plus successful job provenance and full hash, and the actual per-target least-privilege account remains the final boundary. Unknown/legacy/source-directive profiles are rejected, never string-rewritten.
+
+Live verification, when authorized, compares raw SHOW CREATE TABLE, columns/indexes/FKs/checks and exact row counts against source-before/source-after snapshots. Full data-value equality, exclusion of external concurrent DDL/writes, live import permissions, actual native SQL exit, target accessibility and successful restored result remain **NOT VERIFIED**. Source drift or schema/count mismatch must fail rather than claim success. Fake adapters cannot establish real MySQL compatibility.
+
+Prepared authorization job: `b2197f1be82de698bd6678a09e1507c7`; proposed new target `local_import_20261018_b2197f1be82de698`; proposed account `local_import_bd6678a09e1507c7@localhost`; only SELECT, INSERT, CREATE, REFERENCES on the escaped exact target. Provisioning CLI plan-only output was checked without connecting. No ownership journal was manufactured for live acceptance. One additional browser smoke-test job is only awaiting provisioning. Authorization, fresh server UUID/version/endpoint/grants/collision checks and usable reader/import credentials are still required before persistent actions. No automatic target/account deletion or retry is authorized.
+
+Existing backups/history retained; source and production package manifests not rewritten; no port 3333, Windows/Apache/service/trust changes, protected-source access, commit/push/tag/release. Only own isolated test fixtures were removed. Historical results below remain unchanged and are not relabeled as newly run.
+
+---
+
+## 2026-10-18 — Controlled live mysqldump acceptance (latest result)
+
+**PASS for Manual InnoDB table structure/data backup on the four authorized sources.** This supersedes the live-credential blocker in the preceding offline entry. Full database-object coverage and Restore correctness are not claimed.
+
+User explicitly authorized resetting the lost reader credential and continuing. Reset only `backup_reader@localhost` with a random password; existing exact SELECT grants unchanged (verified before reset and by the reader connection afterwards). Root was used only for server/account checks and the authorized password reset, never for dump execution. Native server facts: MySQL Community 8.4.3, `127.0.0.1:3306`, UUID `198f474e-899b-11f1-903d-f0761cf4041a`, reader `CURRENT_USER()=backup_reader@localhost`, roles `NONE`, `partial_revokes=0`. New password delivered to Windows Clipboard, not printed or persisted to config/report. No production Secret Provider enrollment.
+
+Real HTTP workflow through existing Laragon Apache: GET Backup -> POST connection form with CSRF -> POST job create -> POST execute -> GET persisted status -> GET History -> authorized Download. Application Auth/CSRF/session ownership remained enabled; PowerShell WebRequestSession retained cookies. Browser separately confirmed History rendering. This is actual website/API execution, not a CLI-only dump or a claim that browser buttons were clicked.
+
+Initial live job `d0df8d7faa71ac7af7ea3befd0e571bb` truthfully failed all four items with exit 7, no artifacts published. Diagnosis: installed utility rejected `--connect-timeout=5`. Removed the unsupported flag; added a real-binary, no-connection `--help` profile regression: **RED exit 7 -> GREEN exit 0**. No unrelated engine or server changes.
+
+Successful job: `22233e185117ea16dd424086220089dd`, 2026-10-18 **22:37:54–22:37:59 +07:00**. Persisted 12 revisions; maximum running items in any revision **1**; terminal **succeeded**, succeeded **4**, failed **0**.
+
+| Source | Tables | SQL bytes | SHA-256 | Result |
+|---|---:|---:|---|---|
+| autoprintdb | 9 | 20,601 | `0fafc77e5bcff9d73112fab6033c5b388a7c6d58a69449007b0d039dbdbfd4bd` | succeeded |
+| drugmap_db | 7 | 775,477 | `69c77e2e9a7ce03447a4ffba5cf27093de319d4ede6a4405a0936a2c5266b6b7` | succeeded |
+| drug_stock_check | 10 | 522,848 | `ecd48ce34a0a938489c131058b7eb44e53f6402066ee4ddb960df17be545531f` | succeeded |
+| prepack_labels | 5 | 183,155 | `196640df501a62fc20b42ebc3c947e46c340cb13379aa202abcb3c4ea0dc533e` | succeeded |
+
+All four: actual utility exit **0**, nonempty SQL, native completion footer and application marker present, manifest `complete=true`, source identity correct, actual bytes/SHA-256 match manifest/job. All four authorized HTTP downloads returned **200** and downloaded bytes hashed identically to stored SQL. History returned **200** and listed all filenames. Job create **201**, execute/status **200**, connection form **200**. Negative checks using a separate legitimate loopback session: foreign job status **404**; invalid download token **404**. No protected/unauthorized-schema negative database query.
+
+History integration fix: new official-utility metadata was previously shown as `invalid_metadata` because History reused the old custom-exporter Restore validator. Added lightweight `BackupService::mysqldumpHistoryMetadata()` and front-controller mapping; new manifest metadata/provenance now display correctly while Restore stays `unsupported_mysqldump_format`, ineligible. No SQL hash on each History load, fabricated row count or weakening of Restore validator/parser. Focused regression **RED undefined method -> GREEN**. Browser verified all four new History rows: provenance **verified**, integrity **not_checked** (history is metadata-only), Restore **unsupported_mysqldump_format**. Full live hashes above were independently checked during acceptance, not claimed as a cached UI hash result.
+
+Final targeted verification: `Mysqldump` **18/18 PASS** (including real binary option validation and History metadata); directly affected source-policy/runner/publisher/API contract suites **6+5+5+5 PASS**. Aggregate **39/39 PASS**, zero skipped. No full regression, unrelated UI, Restore, DPAPI or deployment test rerun. Changed PHP lint **12/12 PASS**; `git diff --check` passed.
+
+Post-run: SQL `.tmp` count under authorized-source folders **0**; private credential temp directories **0**; reader-password matches in live job files, app log and new manifests **0**. Shared Laragon process/listener baseline unchanged: Apache PID 4024/8081, MySQL PID 16220/3306. Existing backups retained, failed job history retained. No connection to port 3333, protected/unauthorized database access, source data/schema writes, broad grants, Restore execution, service/config/deployment changes, commit/push/tag/release. Old production package remains unchanged/stale.
+
+Remaining limits: table-only scope excludes triggers/routines/events and rejects visible views/non-InnoDB/cross-schema FK; avoid concurrent DDL; MySQL 8.4 SQL compatibility with other client/server dialects and live Restore are NOT VERIFIED. New artifacts intentionally remain ineligible for the existing Restore workflow. Clipboard is transient; future login requires retaining the reader password securely.
+
+---
+
+## 2026-10-18 — Official mysqldump replacement (latest)
+
+Current acceptance: **OFFLINE IMPLEMENTED / LIVE BLOCKED — existing reader credential required interactively**. This entry supersedes custom-exporter implementation assumptions below, not the historical observations. No live mysqldump backup was executed in this change round.
+
+Verified installed binary: `C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysqldump.exe`; reported `mysqldump Ver 8.4.3 for Win64 on x86_64 (MySQL Community Server - GPL)`; SHA-256 `25d8eab0985f55864d5007574ec275b79fdf761cf53c3a0a766ec4f2bdd10acc`. This is the installed-artifact pin, not a new vendor-signature/provenance approval.
+
+| Focused verification | Observed result | Scope |
+|---|---|---|
+| Initial TDD RED | 0/6 pass | Command/process/credential classes missing |
+| Service integration RED | 7/10 pass, 3 expected failures | Existing custom exporter exercised by new service contract |
+| Grant policy RED | 0/1 pass | Missing exact grant validator |
+| `php tests/run.php Mysqldump` | **16/16 PASS**, 0 skip | Fixed argv, allowlist, endpoint/runtime account/server UUID/version/roles/partial_revokes checks, exact escaped grants, option escaping, real synthetic NTFS ACL lifecycle, 2MiB stdout + 1MiB stderr, exit/timeout/cancel/limits, fake engine header/footer/diagnostics, secret-safe errors, cleanup/no-overwrite, publisher hashes, sequential persisted runner integration |
+| `ManualBackupSourcePolicyTest` | **6/6 PASS** | Exact source policy and rejection before database/process access |
+| `Phase2JobRunnerTest` | **5/5 PASS** | Directly affected operation integration, sequence/failure/re-entry/recovery |
+| `Phase2ArtifactPublisherTest` | **5/5 PASS** | Publisher completion/integrity/create-only/rollback contracts |
+| `Phase2JobApiAndUiTest` | **5/5 PASS** | Auth/CSRF/ownership/public response and existing backup markup contract |
+| Changed PHP lint | **12/12 PASS** | BackupService, operation, five new adapter components, controller, front controller, two new test files and backup view |
+| Apache browser rendering | **VERIFIED** | Existing `http://localhost:8081/backUP-phpmyadmin-fordev/index.php?page=backup` renders new scope notice and existing workflow controls; no DB connection initiated |
+
+Fresh focused aggregate: **37/37 PASS**. No full regression, Restore, DPAPI or deployment suites run. The prior 48/48 result remains historical; 13 custom-exporter tests (`ManualBackupSnapshotTest`, `ManualBackupSqlFidelityTest`, `ManualBackupEngineIntegrationTest`) and the unused serializer/batch/snapshot classes are retired because official mysqldump replaces their behavior. Their success is not transferred to the new utility.
+
+Table-only manifests explicitly record exclusions and `full_database_objects=false`; restricted metadata must not imply trigger/routine/event absence. Visible table pre/post comparison is only a drift detector. Concurrent DDL must be avoided; no prevention or complete DDL-consistency claim is made. MySQL 8.4 SQL compatibility with older MySQL/MariaDB is **NOT VERIFIED**. Source inspection confirms existing RestoreArtifactValidator rejects the new manifest because it requires all old integer stats and restore_order; the new exporter truthfully uses unknown row count. Restore validator/parser remain unchanged and hard-disabled execution remains in place; no restore correctness/eligibility claim.
+
+Live source backup, actual mysqldump DB connection/exit, persisted live sequence, SQL/manifest/hash/download and History entries for all four sources are **NOT VERIFIED**. Prior admin metadata is supporting history only. Existing `backup_reader` was not recreated/modified. Current browser session is unconnected; neither browser nor Windows Clipboard has a usable previously generated reader secret. Interactive entry was requested; no password reset or root fallback is authorized/used.
+
+Security boundary: fixed binary/options/endpoint/account/server; no privileged metadata queries; ephemeral plaintext option file outside web root with ACL verified before write; password absent argv/environment/log/job/manifest. Real NTFS test uses synthetic credentials only and removes its own exact directory. Hard process/machine crashes can leave an orphan private directory; secure erasure and protection against current-SID/admin compromise are not claimed. The fixed PowerShell command only creates/verifies a new temporary directory ACL; it does not change policy/trust or Secret Provider architecture. No account/grant/source database mutation, service/config change, backup deletion, production-package rebuild, commit/push/tag/release or protected-schema access in this round.
+
+---
+
 วันที่: 2026-10-16  
 Runtime: `C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe`
 
@@ -472,7 +710,7 @@ Apache URL: `http://localhost:8081/backUP-phpmyadmin-fordev/`
 
 ## Restore Integration — Dedicated Credential Provisioning Preparation
 
-วันที่ตรวจสอบ: 2026-10-18  
+วันที่ตรวจสอบ: 2026-10-18
 Scope: Offline typed credential plan, reviewed DBA procedure และ focused safety tests เท่านั้น  
 Runtime: `C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe`
 
@@ -750,6 +988,59 @@ Scope: standalone Apache/PHP configuration, read-only deployment preflight, serv
 ### Safety Record
 
 ไม่มี Windows account/service/ACL/Program Files/ProgramData mutation, ไม่มี Apache start/restartหรือ Laragon config change, ไม่มี MySQL/MariaDB connection, backup/restore, credential/database operation หรือการเข้าถึง `jhcisdb` และไม่มี commit, push, tag หรือ release
+
+---
+
+## Phase 1 — Complete Manual Backup Offline Verification
+
+วันที่ตรวจสอบ: 2026-10-18
+Scope: exact source policy, BackupService data fidelity/snapshot constraints, directly affected sequential jobs, shared lock และ artifact publisher เท่านั้น
+
+### Implemented
+
+- ใช้ `AuthorizedSourcePolicy` กลางร่วมกับ Restore Integration โดยอนุญาต exact names เพียง `autoprintdb`, `drugmap_db`, `drug_stock_check`, `prepack_labels`
+- database discovery ใช้ exact `information_schema.SCHEMATA` predicate; ไม่มี unrestricted `SHOW DATABASES` ใน production paths
+- selection, job create/read, `MysqliBackupOperation`, legacy controller และ `BackupService` ตรวจ source ซ้ำ; forged persisted source ถูก reject ก่อน executor connection
+- SQL value encoding แยก `NULL`, empty/text/temporal, validated numeric lexeme และ binary/bit/geometry เป็น hex; unknown field type fail closed
+- unbuffered row streaming จำกัด batch 100 rows/4 MiB, reject oversized single-row statement และ free result ทุก error path
+- รองรับ successful artifact เฉพาะ base tables ที่มี complete InnoDB metadata; view, MyISAM/unknown engine, trigger, procedure, function และ event เป็น unsupported
+- กำหนด source session time zone เป็น UTC แล้วใช้ `REPEATABLE READ` + `START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY`, rollback หลังอ่าน และตรวจ schema fingerprint ก่อน/หลัง
+- database default charset/collation และ exact foreign-key DDL จาก `SHOW CREATE TABLE` ถูกเก็บไว้; cross-schema FK ถูก reject
+- completion marker, temporary file, manifest bytes/SHA-256 และ create-only atomic publisher เดิมยังเป็น success gate
+
+### Change-Based Verification
+
+| Verification | Result | Observed evidence |
+|---|---|---|
+| TDD RED | EXPECTED FAIL | source policy `0/5`, SQL fidelity `0/4`, snapshot `0/3`, engine snapshot probe `0/1`; additional metadata/result-cleanup/FK/view safety probes fail ก่อนแก้แต่ละ behavior |
+| New manual-backup focused tests | PASS | `Tests: 19, Passed: 19, Failed: 0, Skipped: 0` |
+| Directly affected Phase 2 job/store/API tests | PASS | `Tests: 15, Passed: 15, Failed: 0, Skipped: 0` |
+| Existing artifact publisher + shared lock | PASS | `Tests: 7, Passed: 7, Failed: 0, Skipped: 0` |
+| Shared Restore source-policy dependency | PASS | `Tests: 7, Passed: 7, Failed: 0, Skipped: 0` |
+| Focused aggregate | PASS | `Tests: 48, Passed: 48, Failed: 0, Skipped: 0` |
+| Changed PHP syntax | PASS | `19` changed/new PHP files; failures `0` |
+| Production discovery scan | PASS | `SHOW DATABASES` hitsใน `app/`, `public/`, `config/` = `0` |
+| Local live-readiness metadata inspection | BLOCKED | backup-reader envelope absent, signed production helper absent, development backup root present, shared lock file absent, persisted job count `0`; ไม่เปิด MySQL socket |
+
+ไม่ได้รัน Full Regression และไม่ได้รัน UI/Restore executor/DPAPI/Deployment suites ที่ไม่เกี่ยวข้อง
+
+### Snapshot Policy / NOT VERIFIED
+
+- InnoDB row data ใช้ consistent read contract; schema/DDL ไม่ใช่ MVCC snapshot จึงใช้ pre/post fingerprint และ manifest ระบุ `ddl_locking=false`
+- `AUTO_INCREMENT` metadata ถูกอ่านก่อน snapshot และไม่ใช้เป็น DDL-drift signal; fidelity ภายใต้ concurrent inserts ยัง **NOT VERIFIED**
+- visibility ของ view/stored-program inventory ภายใต้ dedicated least-privilege account ยัง **NOT VERIFIED**; engine จึง fail closed เมื่อมองเห็น object เหล่านี้ และ Live Gate ต้องพิสูจน์ metadata visibility เพิ่ม
+- live Laragon MySQL 8.4.3 identity, `CURRENT_USER()`, exact grants/roles/`partial_revokes`, source existence, concurrent-write behavior, real artifact download และทั้งสี่ source ยัง **NOT VERIFIED**
+- production source package/manifest เดิมไม่ครอบคลุม working-tree changes รอบนี้และต้อง regenerate/review แยกก่อน deployment
+
+### Live Backup Gate
+
+สถานะ: **OFFLINE COMPLETE / LIVE BLOCKED**
+
+เหตุผล: ไม่มี provisioned/verified `backup_reader` secret, signed Native Helper deployment และ explicit Live Backup Authorization ห้ามใช้ root ทดแทน จึงไม่มี MySQL connection, `SHOW`/`SELECT`, backup execution หรือ database operation ใดเกิดขึ้น
+
+### Database and Delivery Safety Record
+
+ไม่มี MySQL/MariaDB connection, database query, credential provisioning, account/grant/database mutation, backup/restore execution, Windows/Laragon mutation หรือการเข้าถึงฐานข้อมูลใดรวมถึง `jhcisdb`; ไม่มี commit, push, tag หรือ release
 
 ---
 

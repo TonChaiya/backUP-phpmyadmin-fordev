@@ -1,159 +1,102 @@
-# PHP MySQL Backup Manager
+# Local MySQL Export / Import Manager
 
-เว็บสำหรับเชื่อมต่อ MySQL/MariaDB จาก host หรือ IP ที่กำหนด เลือกฐานข้อมูลที่ต้องการ และสำรองเป็นไฟล์ `.sql` แยกตามฐานข้อมูล
+เว็บ PHP สำหรับ Export/Import MySQL ผ่าน **Laragon บนเครื่องเดียว** ใช้ official `mysqldump.exe` และ `mysql.exe` ไม่ใช่ Custom SQL Engine ไม่มี Application Login หรือ Windows service เพิ่ม
 
-## โครงสร้าง
+[คู่มือใช้งาน](docs/LOCAL_USER_GUIDE.md) · [Architecture](docs/ARCHITECTURE.md) · [แนวทางสำหรับ AI/ผู้พัฒนา](AGENTS.md) · [ผลทดสอบ](TEST_BASELINE.md) · [ข้อจำกัด Import](docs/LOCAL_IMPORT_ACCEPTANCE_2026-10-19.md)
 
-- `public/` หน้าเว็บและ assets ที่เปิดผ่าน browser
-- `app/` โค้ด PHP หลัก แยก service และ helper
-- `config/` ตั้งค่าระบบ เช่น ตำแหน่งจัดเก็บ backup
-- `storage/backups/` ไฟล์ฐานข้อมูลที่สำรองแล้ว
-- `storage/jobs/` สถานะงานสำรองและ lock ภายในระบบ (private, Git ignored)
+## ฟังก์ชันปัจจุบัน
 
-## การใช้งาน
+- Dashboard / Export / Import / History / Settings บน UI เดิม
+- Export หนึ่งฐาน หลายฐาน หรือทุกฐานที่อนุญาต ทำตามลำดับทีละฐาน พร้อม Job History และ shared operation lock
+- Export เฉพาะ InnoDB base-table structure + rows ไม่ใช่ Full Database Backup; ไม่รวม Views, Triggers, Procedures/Functions, Events, Non-InnoDB และไม่รองรับ cross-schema FK
+- Import เฉพาะ SQL จาก trusted application profile ที่มี Manifest/Job Provenance ผ่าน SHA-256 ลงฐานใหม่ที่มี Ownership และบัญชีเฉพาะงานเท่านั้น
+- History พร้อม Download ที่ตรวจ Session token, containment และ integrity ตามสัญญาไฟล์ปัจจุบัน; ไฟล์เก่าที่ไม่มี Manifest มี compatibility แบบ completion-marker-only จึงไม่เทียบเท่า Import eligibility
+- แสดงผล Import แยก Execution / Schema / Live-source Data / SQL-snapshot Data / Verification ไม่รวมเป็น Success เดียว
 
-เปิดผ่าน Laragon หรือ PHP built-in server โดยชี้ document root ไปที่ `public/`
+## Requirements
 
-```powershell
-php -S 127.0.0.1:8080 -t public
-```
+- Windows x64 + Laragon Apache/PHP 8.3; mysqli/mysqlnd, JSON, Session, Hash และ `proc_open`
+- Existing Laragon MySQL **8.4.3** ที่ `127.0.0.1:3306` และ official clients ใน `C:/laragon/bin/mysql/mysql-8.4.3-winx64/bin/`
+- Code ตรวจ exact version, executable SHA-256 และ native server UUID ที่ pin ไว้ ไม่ใช่รองรับ MySQL 8.4 ทุก binary/server โดยอัตโนมัติ
+- Local NTFS writable runtime/temp, temp อยู่นอก Web Root; fixed Windows PowerShell command สำหรับ private temporary ACL และ hard-link publication ที่ volume รองรับ
+- ไม่มี Composer/npm runtime install, DPAPI/.NET helper, Signing หรือ Dedicated Apache dependency; Node.js ใช้เฉพาะ JS fixture test ที่เลือก
 
-จากนั้นเข้า `http://127.0.0.1:8080`
+## ติดตั้ง/เปิดผ่าน Laragon ในเครื่องเดิม
 
-## Phase 1: การเข้าถึงอย่างปลอดภัย
+1. วาง Source ที่ `C:/laragon/www/backUP-phpmyadmin-fordev` โดยเก็บ Source/Views/Assets/Config Templates และ `storage/.htaccess` ครบ ไม่ Copy ข้อมูลฐานหรือ Credential เข้า Git
+2. ใช้ Laragon Apache/PHP เดิมที่เปิดใช้อยู่ พอร์ต8081, mod_rewrite และ AllowOverride ต้องรองรับ `.htaccess` ของโปรเจกต์ ไม่แก้ VirtualHosts/Service/MySQL อัตโนมัติ
+3. เปิด [Dashboard](http://localhost:8081/backUP-phpmyadmin-fordev/) บนเครื่องนี้เท่านั้น; หรือใช้ `public/` เป็น Web Root ตามการตั้งค่าเดิม
+4. Development bootstrap ใช้ `storage/` และสร้าง directories ที่ขาดเมื่อเปิดเว็บ Source ใหม่ไม่มี SQL/Jobs/Credentials จาก Git ให้เอง ห้ามย้าย/ลบ storage เดิมในการอัปเดต
+5. ตรวจ prerequisites และ server/client pins ให้ตรงกับเครื่องที่ได้รับอนุญาตก่อน Live Operation หากติดตั้งคนละเครื่องแล้ว pin ไม่ตรงให้หยุด ไม่แก้ hash/UUID เพื่อข้าม safety gate
 
-หากยังไม่มี `config/local.php` ระบบจะอนุญาตเฉพาะการเชื่อมต่อโดยตรงจาก `127.0.0.1` หรือ `::1` เท่านั้น การส่ง `X-Forwarded-For` ไม่ทำให้ request จาก LAN หรือ Remote กลายเป็น localhost
+ไม่มีขั้นตอนสร้างฐาน/บัญชี/GRANT หรือ Restart Service ในการติดตั้ง Source นี้ การเตรียม MySQL role ต้องอนุมัติแยก
 
-เมื่อต้องการเปิดใช้งาน authentication:
+## Configuration
 
-1. สร้างรหัสผ่านและ hash แบบสุ่มด้วย Laragon PHP
+`config/app.php` เป็น default; optional ignored `config/local.php` merge ทับค่าที่อนุญาต ใช้ `config/local.php.example` เป็นตัวอย่างและ **ห้ามเขียนทับ local.php เดิม**
 
-   ```powershell
-   C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe tools\generate-admin-credentials.php
-   ```
+- `app_name`: ชื่อแอป
+- `runtime_data_mode=development`, `runtime_data_root=<project>/storage`
+- `max_backup_files=200`, `connect_timeout_seconds=5`
+- Backup/Jobs/Logs/Sessions/Ownership/Shared Lock paths derive จาก root เดียว ไม่ตั้ง writable roots แยกกระจัดกระจาย
+- ไม่ใส่ MySQL password ลง PHP config; old website auth hashes ไม่เปิด LAN/login
+- production-mode path validation เก็บไว้เพื่อ compatibility เท่านั้น ไม่สลับไป ProgramData และไม่ Deploy ให้อัตโนมัติ
 
-2. คัดลอก `config/local.php.example` เป็น `config/local.php`
-3. ใส่ hash ที่สร้างได้ใน `auth.password_hash` และเก็บรหัสผ่านที่แสดงครั้งเดียวไว้ใน password manager
-4. ทดสอบ login ผ่าน loopback ก่อนเปิด firewall หรือ virtual host ให้เครื่องอื่นเข้าถึง
+ตำแหน่ง Import เดิม `restore-jobs/local-import`, ownership `restore-integration-ownership/local-import` และ `database-operations/global.lock` ยังคงเดิม ไม่ต้อง migration ดู [Configuration/Storage reference](docs/ARCHITECTURE.md)
 
-`config/local.php` ถูก Git ignore และต้องไม่ commit. ทุก route รวมถึง download จะต้องผ่าน access policy เดียวกัน เมื่อกำหนด password hash แล้ว แม้แต่ loopback ก็ต้อง login
+## Export
 
-Reverse proxy มีข้อจำกัดโดยตั้งใจ: ระบบไม่เชื่อถือ `X-Forwarded-For` หรือ `X-Forwarded-Proto` เพื่อยืนยัน localhost/HTTPS ผู้ดูแลต้อง terminate HTTPS และกำหนด access control ที่ web server อย่างชัดเจน ห้ามเปิดแอปนี้สู่ Internet โดยตรง
+1. เปิด Export เชื่อม `backup_reader@localhost` ที่ `127.0.0.1:3306` ด้วยรหัสของบัญชีนี้
+2. เลือกจาก `autoprintdb`, `drugmap_db`, `drug_stock_check`, `prepack_labels` เท่านั้น หนึ่ง/หลาย/ทั้งหมดได้
+3. ยืนยัน Export รอ persisted status ของแต่ละฐาน ระบบทำทีละฐาน
+4. Download จาก History เท่านั้น ไม่เปิด SQL ผ่าน storage URL โดยตรง
 
-## Navigation
+Reader ต้องมี SELECT-only เฉพาะสี่ฐานแบบ exact escaped grants ไม่มีสิทธิ์ write/global/stored objects/GRANT OPTION ไม่ใช้ root แทน
+หากไม่มีรหัสให้ติดต่อผู้ดูแล เว็บไม่ Reset/Provision/GRANT อัตโนมัติ Session ที่ยังเชื่อมต่อใช้ต่อได้; การส่ง Connect ใหม่ต้องมีรหัสถูกต้อง
 
-- Dashboard — ภาพรวม
-- Backup — เชื่อมต่อและสำรองแบบ Manual ทีละฐาน
-- Restore — ตรวจ provenance, integrity, SQL structure และ safety gates แบบ preflight เท่านั้น
-- History — รายการ, สถานะ origin แบบเบา และ secure download
-- Settings — เลือก backup directory ภายใต้ allowlist
+## Import
 
-ทุกหน้าผ่าน `public/index.php?page=<route>` และใช้ shared layout เดียวกัน
+1. เลือก trusted Backup จากหน้า Import หรือ History ตรวจชื่อ Source/SQL/ขนาด/SHA-256 แล้วเตรียมงาน
+2. ระบบสร้างชื่อ Target/บัญชีเฉพาะงานให้ Browser เปลี่ยนเป็นฐานเดิมไม่ได้
+3. หาก awaiting_provisioning ให้ผู้ดูแลอนุมัติ exact target/account/actions ก่อนใช้ CLI provisioning ที่ default plan-only ไม่กดสร้างงานซ้ำเพื่อแก้ Credential ที่ขาด
+4. เมื่อ Ownership/บัญชีพร้อมและ reader Session เชื่อมแล้ว กรอกรหัส Import เฉพาะงาน พิมพ์ `IMPORT` แล้วยืนยัน ใช้ mysql.exe หนึ่งครั้ง
+5. ตรวจผลแต่ละด้าน หากขัดจังหวะ/failed ให้เก็บฐานเดิมไว้ตรวจ ไม่ Retry/Overwrite/Drop อัตโนมัติ
 
-## Phase 4: Modern UX/UI
+ไม่รับ arbitrary SQL upload, old custom dumps หรือ SQL ที่แก้ชื่อฐานด้วย string replacement
+`tools/provision-local-import.php` และ `tools/verify-existing-import.php` เป็น CLI ที่ต้องมีอำนาจเฉพาะก่อน Live; ไม่ใช่คำสั่ง Install/Offline Smoke Test
 
-Shared layout รองรับ desktop, tablet และ mobile พร้อม skip link, active navigation, เมนูมือถือที่เปิด/ปิดด้วย keyboard, visible focus และ reduced-motion preference โดยใช้ CSS/JavaScript ภายในโปรเจกต์และไม่เพิ่ม framework
+## Security และข้อจำกัด
 
-- Dashboard แสดงเฉพาะ connection status, จำนวนฐานที่ session มองเห็น, จำนวน/เวลาของไฟล์สำรอง, งานสำรองล่าสุดใน session และ Restore safety gate จริง
-- Backup เพิ่มค้นหา, เลือกรายการที่มองเห็น, ล้างรายการ, จำนวนที่เลือก และ confirmation dialog ก่อนส่งคำขอสร้าง job; executor และ concurrency ยังคงเป็น Phase 2 เดิม
-- Restore นำสถานะ fail-closed ขึ้นก่อนฟอร์ม แสดง safety gates และ preflight history แต่ยังไม่มีระบบประมวลผล SQL หรือปุ่ม restore
-- History เพิ่มค้นหา/filter และแยก integrity, provenance, eligibility ชัดเจน โดยยังไม่ hash ไฟล์ SQL ตอนเปิดหน้า
-- Settings แสดง connection summary โดยไม่แสดง password, storage allowlist, security/access และ runtime environment
+Direct loopback peer เท่านั้น (`127.0.0.1`/`::1`); LAN ถูกปฏิเสธแม้ปลอม forwarding headers รักษา Session/CSRF/job ownership/Download token
+**ห้ามเข้าถึง jhcisdb หรือฐานนอก allowlist** ห้ามแก้ต้นทาง; Import ใช้บัญชีที่จำกัดเฉพาะฐานใหม่ ไม่ใช่ root
 
-สถานะงานทั้งหมดมาจาก persisted job state ไม่มีเปอร์เซ็นต์, success rate หรือเวลาเสร็จโดยประมาณที่ระบบพิสูจน์ไม่ได้ การ refresh จะอ่าน active job เดิมและไม่สร้าง job ใหม่
-ขณะ Restore preflight อยู่ใน `queued` หรือ `running` หน้าเว็บจะ poll เฉพาะ status จนถึง `blocked`, `failed` หรือ `interrupted`; การ poll ไม่เรียก create/preflight และไม่เริ่ม SQL execution
+Session files และ private temporary option files ไม่ใช่ encrypted vault ต้องป้องกันด้วย Windows permissions; ผู้ยึด runtime account/admin สามารถข้าม local trust assumptions ได้ Crash อาจทิ้ง private remnants; อย่า Cleanup ด้วย Prefix/Wildcard
+Single-transaction/pre-post inventory ไม่ป้องกัน concurrent DDL/writes ทั้งหมด และ SELECT-only ไม่พิสูจน์ว่าไม่มี objects ที่บัญชีมองไม่เห็น
 
-## Phase 3: Restore Preflight แบบ Fail-Closed
+**Overall Import Acceptance: PARTIAL — SQL Snapshot-value Fidelity NOT VERIFIED.**
+mysql.exe exit0 ไม่เท่ากับ full verification; normal runner ตรวจ effective schema/row counts ส่วนหลักฐานแยกเคยเทียบทุกค่ากับ Live Source ณ เวลาตรวจแล้ว ไม่ใช่ค่าจาก historical SQL Snapshot ประวัติ failed เดิมไม่ถูกแก้เป็น succeeded
+ดู [Acceptance evidence](docs/LOCAL_IMPORT_ACCEPTANCE_2026-10-19.md)
 
-Phase 3 ไม่มี SQL executor และไม่เชื่อมต่อฐานข้อมูลเพื่อ Restore หน้า Restore ทำได้เฉพาะสร้างงานตรวจสอบไฟล์ที่มี Phase 2 job provenance, ตรวจ SHA-256/ขนาด/completion marker/manifest จากไฟล์จริง, ตรวจ SQL structure แบบ conservative และตรวจชื่อฐานทดลองปลายทาง งานที่ผ่านการตรวจไฟล์จะจบเป็น `blocked` เพราะยังไม่มีหลักฐาน isolated disposable instance, dedicated credentials, target-scoped privileges และ live integration test ไม่มี configuration flag ที่เปิด execution ได้
+## Development / change-based verification
 
-Backup รุ่นเก่าหรือไฟล์ที่ไม่มี Phase 2 provenance จะแสดง `unverified_origin` และไม่ eligible ระบบไม่สร้าง provenance ย้อนหลัง หน้า History อ่านเฉพาะ metadata/manifest/provenance เพื่อไม่ hash ไฟล์ขนาดใหญ่ทุกครั้ง และระบุชัดว่ายังไม่ได้ตรวจ SHA-256; full preflight เท่านั้นที่ตรวจเนื้อหาไฟล์จริง
-
-## Phase 2: Manual Backup Jobs
-
-หน้า Backup รองรับการเลือกหนึ่งฐาน หลายฐาน หรือทั้งหมดจากรายการที่ connection ปัจจุบันอนุญาต งานจะถูกเก็บเป็นสถานะ file-backed ภายใต้ `storage/jobs/` และประมวลผลทีละฐานเท่านั้น โดย per-job lock ป้องกันการเริ่ม job เดิมซ้ำ และ global lock ป้องกันงานสำรองหลาย job ทำงานพร้อมกัน
-
-สถานะที่แสดงคือ `queued`, `running`, `succeeded`, `failed` และ `interrupted` จากข้อมูลที่บันทึกจริง ไม่มีเปอร์เซ็นต์หรือเวลาเสร็จโดยประมาณ หากฐานหนึ่งล้มเหลว ระบบบันทึก error แบบปลอดภัยแล้วทำฐานถัดไปต่อ
-
-การ refresh หรือปิด browser จะไม่สร้าง job ใหม่ หน้าเดิมสามารถกลับมาอ่านสถานะผ่าน session ได้ หาก HTTP process ยังทำงาน งานอาจดำเนินต่อ แต่การตั้งค่า `ignore_user_abort` และ time limit ไม่รับประกันว่าจะรอดจาก Apache/FastCGI/Windows restart เมื่อพบ claimed job ที่ไม่มี process ถือ lock แล้ว ระบบจะแสดง `interrupted` และไม่ลองใหม่อัตโนมัติ
-
-ไฟล์ job ไม่มี database password, session token หรือ authentication credential ข้อมูลเชื่อมต่อถูกใช้จาก server session ใน memory ของ request เท่านั้น Job ผูกกับ connection context ที่เก็บเฉพาะใน session; หาก reconnect หลังสร้าง queued job งานเดิมจะถูก interrupted และต้องสร้างงานใหม่ เพื่อไม่ให้รายชื่อฐานเดิมไปสำรองจาก server อื่นโดยไม่ตั้งใจ Job API ทุก action ต้องผ่าน authentication; create/execute และ status ต้องผ่าน CSRF/ownership ตามนโยบาย Phase 1
-
-## ตั้งค่าตำแหน่งเก็บไฟล์สำรอง
-
-ค่าเริ่มต้นแก้ไขได้ที่ไฟล์ `config/app.php`
-
-```php
-'backup_path' => dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'backups',
-```
-
-ผู้ใช้สามารถเปลี่ยนตำแหน่งจัดเก็บจากหน้าเว็บได้ในแถบ “ตำแหน่งจัดเก็บไฟล์สำรอง”
-
-ตั้งแต่ Phase 1 ตำแหน่งดังกล่าวต้องอยู่ภายใต้ `allowed_backup_roots` เท่านั้น หากต้องการใช้ drive หรือ directory ภายนอก ให้เพิ่ม absolute path ใน `config/local.php` ก่อน แล้วจึงเลือก path ย่อยผ่านหน้า Settings ตัวอย่างอยู่ใน `config/local.php.example`
-
-ไฟล์สำรองจะแยกโฟลเดอร์ตามชื่อฐานข้อมูล เช่น
-
-```text
-storage/backups/
-  database_a/
-    2026-07-17_17-30-00_database_a.sql
-    2026-07-17_17-30-00_database_a.sql.json
-  database_b/
-    2026-07-17_17-31-05_database_b.sql
-    2026-07-17_17-31-05_database_b.sql.json
-```
-
-แนะนำให้เก็บนอก public web root และจำกัดสิทธิ์เข้าถึงเฉพาะผู้ดูแลระบบ
-
-ควรกำหนด document root ของ Laragon เป็น `public/`. ไฟล์ `.htaccess` ที่ project root และ `storage/.htaccess` เป็น defense-in-depth สำหรับ Apache แต่ไม่ทดแทน document-root configuration โดยเฉพาะเมื่อใช้ Nginx หรือ reverse proxy
-
-## Log และข้อความผิดพลาด
-
-ผู้ใช้จะเห็นเฉพาะข้อความทั่วไป รายละเอียดทางเทคนิคบันทึกที่ `storage/logs/app.log` และรหัสผ่านฐานข้อมูลที่อยู่ใน session จะถูก redact ก่อนเขียน log ห้ามนำ log ไปไว้ใต้ public web root หรือเผยแพร่ผ่าน Git
-
-## ความครบถ้วนของไฟล์สำรอง
-
-ระบบเขียนไฟล์แบบปลอดภัยขึ้นโดยสร้าง SQL และ manifest เป็นไฟล์ `.tmp` ตรวจ completion marker, SHA-256, ขนาด และ manifest ก่อน publish จากนั้นวาง manifest ก่อนและวาง `.sql` เป็นขั้นสุดท้าย หาก publish ล้มเหลวจะ rollback เฉพาะ artifact ใหม่ของ attempt นั้น ไม่เขียนทับหรือลบ backup เดิม ถ้างานถูกตัดกลางทาง ไฟล์ SQL ที่ไม่สมบูรณ์จะไม่ถูกนำไปใช้เป็น backup หลัก
-
-ลำดับข้อมูลในไฟล์ `.sql` ถูกจัดให้เหมาะกับการ restore และรองรับการรันแยกเป็นช่วง ๆ มากขึ้น:
-
-1. ตั้งค่า session และเลือกฐานข้อมูล
-2. ลบ view เดิมก่อน เพื่อไม่ชนกับชื่อ table
-3. สร้าง table โดยตัด foreign key ออกจาก `CREATE TABLE` ก่อน
-4. ใส่ข้อมูลตามลำดับความสัมพันธ์ของ foreign key เท่าที่ตรวจได้จาก `information_schema`
-5. สำหรับ table ที่เป็น MyISAM จะมี `LOCK TABLES`, `ALTER TABLE ... DISABLE KEYS`, `ENABLE KEYS` และ `UNLOCK TABLES` ครอบช่วง insert แบบเดียวกับแนวทางของ `mysqldump`
-6. คืนค่า `AUTO_INCREMENT` ด้วย `ALTER TABLE ... AUTO_INCREMENT = ...` หลังใส่ข้อมูลครบ เพื่อรักษาเลขถัดไปแม้ table ว่าง
-7. เพิ่ม foreign key กลับด้วย `ALTER TABLE ... ADD CONSTRAINT` หลัง table ครบแล้ว
-8. สร้าง trigger
-9. สร้าง view placeholder สำหรับรองรับ view ที่อ้างถึงกัน
-10. เขียน view จริงทับ placeholder
-11. สร้าง procedure และ function
-12. สร้าง event
-13. คืนค่า session และเขียน marker ว่า backup เสร็จสมบูรณ์
-
-ไฟล์ที่สำเร็จจะมีบรรทัดท้าย:
-
-```sql
--- Backup completed successfully
-```
-
-และมีไฟล์ manifest คู่กันเป็น `.sql.json` ภายในมีขนาดไฟล์, SHA-256, จำนวน table/view/trigger/routine/event/foreign key, จำนวน table ที่คืนค่า `AUTO_INCREMENT`, จำนวน MyISAM lock section และจำนวน row ที่ dump ได้
-
-กรณีฐานข้อมูลมี foreign key วนกันเป็นวงจร ระบบจะยังสร้าง table ได้เพราะ foreign key ถูกแยกออกจาก `CREATE TABLE` แล้ว ส่วนการเติม constraint กลับจะอยู่ท้ายช่วง table/data และยังใช้ session restore ที่ปิด `FOREIGN_KEY_CHECKS` ระหว่าง import เพื่อช่วยกับข้อมูลเดิมที่มี dependency ซับซ้อน
-
-ระบบจะตัด `DEFINER` ออกจาก view, trigger, procedure, function และ event เพื่อลดปัญหา restore ข้ามเครื่องที่ไม่มี user/host เดิม แต่ยังควรทดสอบ restore บน MySQL/MariaDB เวอร์ชันเป้าหมายเสมอ โดยเฉพาะ routine/event ที่ใช้ syntax เฉพาะเวอร์ชัน
-
-## การตรวจสอบก่อน restore
-
-ก่อนนำไฟล์ไป restore ควรตรวจสองจุด:
-
-1. ไฟล์ `.sql` ต้องมีบรรทัด `-- Backup completed successfully` ที่ท้ายไฟล์
-2. ค่า SHA-256 ของไฟล์ `.sql` ต้องตรงกับค่า `sha256` ในไฟล์ `.sql.json`
-
-บน Windows PowerShell ตรวจ checksum ได้ด้วย:
+อ่าน AGENTS.md, ARCHITECTURE.md และ TEST_BASELINE ก่อนแก้ ใช้ PHP/Node ของเครื่อง ไม่ติดตั้ง Framework เพิ่ม เลือกเฉพาะชุดที่กระทบ เช่น:
 
 ```powershell
-Get-FileHash .\backup.sql -Algorithm SHA256
+php -l public/import-job.php
+php tests/run.php ImportSchemaComparisonTest
+php tests/run.php LocalManagerPresentationTest
+node tests/js/local-import-presentation.test.js
+git diff --check
 ```
 
-Phase 3 ไม่ให้คำสั่งหรือช่องทาง execute restore หลังตรวจเสร็จ การทดสอบ restore จริงต้องรอ instance ทดลองที่แยกขาด, dedicated restore user ที่จำกัดสิทธิ์เฉพาะฐานทดลอง และ integration test ที่ได้รับอนุมัติก่อน
+ตัวอย่างไม่ใช่คำสั่งให้รันทุกชุดทุกครั้ง; bare `php tests/run.php` จะเลือกทั้งหมด ไม่ใช้เป็นค่าเริ่มต้น
+`CleanupDependencyTest` ตรวจ autoload/isolated route smoke โดยไม่ใช้ MySQL/storage จริง; ตรวจ side effects ของ test ก่อนเลือกชุด process/NTFS
+
+หลักฐานเดิมที่ไม่ต้องรันซ้ำหาก unchanged: Export4/4, focused39/39, mysql.exe exit0, effective schema9/9, live-source values9/9, finalization12/12, cleanup50PASS/1SKIP ไม่มี Live ใหม่ในงานเอกสาร/Git นี้
+
+## Repository hygiene
+
+Current tree ไม่เก็บ SQL/Manifest Backup, Jobs/History/Sessions/Logs, local config/secrets, private keys หรือ binaries/build artifacts; `storage/.htaccess` เป็นไฟล์ป้องกันที่เก็บไว้
+Tracked runtime เดิมนำออกจาก index เท่านั้น ไฟล์ในเครื่องคงเดิม **Git history เก่ายังอาจมี SQL/artifacts** การ untrack ไม่ใช่การล้างประวัติ; ต้องประเมิน exposure ของข้อมูลเก่าแยกต่างหาก ไม่ rewrite/force push อัตโนมัติ
+
+[Cleanup inventory](docs/PROJECT_CLEANUP.md) อธิบายสิ่งที่ลบ/เก็บ รวม History/provenance utilities สองตัวที่ยังใช้จริง ห้ามนำ Custom Restore/DPAPI/Dedicated Deployment กลับมาเป็น prerequisite
