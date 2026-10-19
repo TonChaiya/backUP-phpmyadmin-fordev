@@ -1,5 +1,25 @@
 # Change-Based Test Baseline
 
+## 2026-10-19 — FINAL LIVE Apache auto-connect and database discovery acceptance
+
+Scope: existing source at bbda3d1, saved Settings profile, actual Laragon Apache/browser and read-only discovery. Client timezone Asia/Bangkok; browser checks13:49–13:54 +07:00. No application source changes or new components were required. User subsequently authorized committing/pushing the evidence on the existing review branch only.
+
+| Actual check | Result / observed evidence |
+|---|---|
+| Existing saved profile / automatic connection | PASS — localhost:8081 Settings loaded Connected without re-entering credentials; configured local account root, MySQL endpoint127.0.0.1:3306, MySQL8.4.3 |
+| Test Connection | PASS — actual button returned success and Settings remained Connected at13:50:03 +07:00; no password/endpoint changes or credential enrollment |
+| Fresh browser Session | PASS — new browser tab at [::1]:8081, distinct loopback cookie origin, loaded Settings Connected at13:52:59 and Export Connected at13:53:38 without credential entry. Session-directory filename-hash inventory changed29→30 (exactly1 new session), all previous session files preserved; no cookie/session IDs or session contents read out/copied/deleted |
+| Independent fresh HTTP session | PASS — empty cookie jar initial count0; actual Settings/Export responses200/200, Connected in both; Server header Apache/2.4.66 Win64, OpenSSL/3.0.18, PHP/8.3.30 |
+| Account-visible eligible catalog | PASS —35 ordinary eligible database options in actual Export HTML and browser, matching across existing browser, new browser Session and fresh HTTP client; no contents/rows/table metadata inspected |
+| System classification | PASS — information_schema, mysql, performance_schema, sys displayed separately;0 selectable system options |
+| Protected classification | PASS — jhcisdb absent from options; reused source-policy evidence confirms exclusion in catalog SQL and pre-execution guards. No direct request/query for its schema, tables, objects or contents was made |
+| Select All with search filter | PASS — search reduced visible list to autoprintdb only; All opened a confirmation for35 eligible databases, not1. Cancelled the dialog; never clicked confirm/start; status remained no job/total0 |
+| Browser rendering | PASS — actual Settings/Export rendered with shared navigation, status, forms/search/list and separate system section. Captured screenshots privately outside repository; no screenshot/database-name inventory added to Git |
+
+Reused29/29 discovery and79/79 connection-focused evidence plus earlier Export/Import evidence; did not rerun those suites or full regression. No new live Export/Import, job creation/execution, database CREATE/ALTER/DROP/data writes, account/GRANT changes, service restart/config changes, port3333 connection or protected-schema access. Only normal application Session writes from the authorized browser/HTTP checks occurred.
+
+Acceptance: **PASS for live auto-connect, fresh Session and discovery/selection/browser scope only**. No remaining blocker observed for Settings/Export discovery. Actual Export/Import execution remains outside this acceptance and was not rerun. Failure/outage behavior was not induced by changing a valid profile or stopping MySQL; prior offline evidence reused. The previously reported Import-view isConnected wiring issue was not fixed or claimed verified in this Settings/Export-only round. SQL-snapshot fidelity and accidental-target ownership limitations from earlier entries are unchanged; no ownership inference or cleanup performed.
+
 ## 2026-10-19 — Account-based discovery and Export selection
 
 User clarified that the four-schema allowlist was controlled-live-test scope, not permanent product policy. Current catalog follows the saved account's visible schemas; protected jhcisdb (case-insensitive) is excluded in the SQL predicate and rejected again on any unexpected result. Only schema names are discovered; no protected table/object inspection. System schemas information_schema/performance_schema/mysql/sys display separately, are not Export/Import eligible and never enter Select All. Windows-unsafe artifact names are also displayed separately as unsupported; ordinary Unicode/spaces/leading-hyphen names are supported. No live discovery was run under this task's fake-only test policy.
